@@ -1,0 +1,25 @@
+/**
+ * DTO para atualização de grupo
+ */
+class AtualizarGrupoDTO {
+  constructor(dados) {
+    this.nome = dados.nome;
+    this.descricao = dados.descricao;
+    this.ativo = dados.ativo;
+    this.webhook_url = dados.webhook_url;
+    this.webhook_eventos = dados.webhook_eventos;
+  }
+
+  toJSON() {
+    const dto = {};
+    if (this.nome !== undefined) dto.nome = this.nome;
+    if (this.descricao !== undefined) dto.descricao = this.descricao;
+    if (this.ativo !== undefined) dto.ativo = this.ativo;
+    if (this.webhook_url !== undefined) dto.webhook_url = this.webhook_url;
+    if (this.webhook_eventos !== undefined) dto.webhook_eventos = this.webhook_eventos;
+    return dto;
+  }
+}
+
+export default AtualizarGrupoDTO;
+
