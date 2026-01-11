@@ -15,8 +15,11 @@
       <ChamadoFiltros
         :filtros="filtros"
         :grupos="grupos"
+        :usuarios="usuarios"
+        :is-admin="isAdmin"
         @update:busca="handleBuscaUpdate"
         @toggle-filtro="toggleFiltro"
+        @update:responsavel="handleResponsavelUpdate"
         @limpar-filtros="limparFiltros"
       />
 
@@ -37,6 +40,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useChamadosStore } from '@/stores/chamados';
 import { useGruposStore } from '@/stores/grupos';
+import { useUsuariosStore } from '@/stores/usuarios';
 import { useAuthStore } from '@/stores/auth';
 import LayoutPrincipal from '@/components/LayoutPrincipal.vue';
 import ChamadoEstatisticas from '@/components/chamado/ChamadoEstatisticas.vue';
@@ -47,6 +51,7 @@ const router = useRouter();
 
 const chamadosStore = useChamadosStore();
 const gruposStore = useGruposStore();
+const usuariosStore = useUsuariosStore();
 const authStore = useAuthStore();
 
 // Estados
@@ -55,6 +60,8 @@ const chamados = computed(() => chamadosStore.chamados);
 const pagination = computed(() => chamadosStore.pagination);
 const estatisticas = computed(() => chamadosStore.estatisticas);
 const grupos = computed(() => gruposStore.grupos.filter(g => g.ativo !== false));
+const usuarios = computed(() => usuariosStore.usuarios.filter(u => u.ativo !== false));
+const isAdmin = computed(() => authStore.isAdmin);
 
 // Carregar filtros do localStorage
 const carregarFiltrosSalvos = () => {
@@ -75,6 +82,10 @@ const carregarFiltrosSalvos = () => {
           filtros.status = ['novo', 'em_andamento', 'aguardando'];
         }
       }
+      // Garantir que atribuido_a seja null se não existir
+      if (filtros.atribuido_a === undefined) {
+        filtros.atribuido_a = null;
+      }
       return filtros;
     }
   } catch (error) {
@@ -85,7 +96,8 @@ const carregarFiltrosSalvos = () => {
     status: ['novo', 'em_andamento', 'aguardando'], // Apenas status abertos por padrão
     prioridade: [],
     tipo: [],
-    grupo_id: []
+    grupo_id: [],
+    atribuido_a: null
   };
 };
 
@@ -128,13 +140,19 @@ const limparFiltros = () => {
     status: ['novo', 'em_andamento', 'aguardando'], // Apenas status abertos por padrão
     prioridade: [],
     tipo: [],
-    grupo_id: []
+    grupo_id: [],
+    atribuido_a: null
   };
   buscarChamados();
 };
 
 const handleBuscaUpdate = (valor) => {
   filtros.value.search = valor;
+  buscarChamados();
+};
+
+const handleResponsavelUpdate = (valor) => {
+  filtros.value.atribuido_a = valor ? parseInt(valor) : null;
   buscarChamados();
 };
 
@@ -188,6 +206,11 @@ onMounted(async () => {
       await gruposStore.meusGrupos();
     } else {
       await gruposStore.listarGrupos({ limit: 1000, ativo: true });
+    }
+    
+    // Carregar usuários apenas se for admin
+    if (authStore.isAdmin) {
+      await usuariosStore.listarUsuarios({ limit: 1000, ativo: true });
     }
     
     // Carregar chamados e estatísticas

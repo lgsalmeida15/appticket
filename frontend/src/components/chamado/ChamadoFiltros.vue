@@ -132,6 +132,45 @@
           </ul>
         </div>
 
+        <!-- Responsável (Apenas Admin) -->
+        <div v-if="isAdmin" class="filter-dropdown">
+          <button 
+            class="filter-button" 
+            type="button" 
+            data-bs-toggle="dropdown"
+            data-bs-auto-close="outside"
+          >
+            <i class="bi bi-person-check-fill"></i>
+            <span>Responsável</span>
+            <span v-if="filtros.atribuido_a" class="filter-count">1</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <ul class="dropdown-menu filter-menu scrollable">
+            <li>
+              <label class="filter-option">
+                <input 
+                  type="radio" 
+                  name="responsavel"
+                  :checked="!filtros.atribuido_a"
+                  @change="handleResponsavelChange(null)"
+                >
+                <span class="option-label">Todos</span>
+              </label>
+            </li>
+            <li v-for="usuario in usuarios" :key="usuario.id">
+              <label class="filter-option">
+                <input 
+                  type="radio" 
+                  name="responsavel"
+                  :checked="filtros.atribuido_a === usuario.id"
+                  @change="handleResponsavelChange(usuario.id)"
+                >
+                <span class="option-label">{{ usuario.nome }} ({{ usuario.email }})</span>
+              </label>
+            </li>
+          </ul>
+        </div>
+
         <!-- Botão Limpar -->
         <button 
           v-if="contarFiltrosAtivos > 0"
@@ -194,6 +233,16 @@
           {{ grupos.find(g => g.id === grupoId)?.nome }}
           <i class="bi bi-x"></i>
         </button>
+        
+        <!-- Tag de Responsável -->
+        <button 
+          v-if="filtros.atribuido_a"
+          class="filter-tag tag-responsavel"
+          @click="handleResponsavelChange(null)"
+        >
+          Responsável: {{ usuarios.find(u => u.id === filtros.atribuido_a)?.nome }}
+          <i class="bi bi-x"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -214,16 +263,25 @@ const props = defineProps({
       status: [],
       prioridade: [],
       tipo: [],
-      grupo_id: []
+      grupo_id: [],
+      atribuido_a: null
     })
   },
   grupos: {
     type: Array,
     default: () => []
+  },
+  usuarios: {
+    type: Array,
+    default: () => []
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:busca', 'toggle-filtro', 'limpar-filtros']);
+const emit = defineEmits(['update:busca', 'toggle-filtro', 'update:responsavel', 'limpar-filtros']);
 
 const handleBusca = (event) => {
   emit('update:busca', event.target.value);
@@ -265,12 +323,17 @@ const limparFiltros = () => {
   emit('limpar-filtros');
 };
 
+const handleResponsavelChange = (usuarioId) => {
+  emit('update:responsavel', usuarioId);
+};
+
 const contarFiltrosAtivos = computed(() => {
   let count = 0;
   count += props.filtros.status.length;
   count += props.filtros.prioridade.length;
   count += props.filtros.tipo.length;
   count += props.filtros.grupo_id.length;
+  if (props.filtros.atribuido_a) count += 1;
   return count;
 });
 </script>
@@ -457,12 +520,17 @@ const contarFiltrosAtivos = computed(() => {
   background: var(--color-bg-tertiary);
 }
 
-.filter-option input[type="checkbox"] {
+.filter-option input[type="checkbox"],
+.filter-option input[type="radio"] {
   width: 16px;
   height: 16px;
   border: 1.5px solid var(--color-border-strong);
   border-radius: 4px;
   cursor: pointer;
+}
+
+.filter-option input[type="radio"] {
+  border-radius: 50%;
 }
 
 .option-badge {
@@ -589,6 +657,15 @@ const contarFiltrosAtivos = computed(() => {
 
 .tag-grupo:hover {
   background: var(--color-gray-300);
+}
+
+.tag-responsavel {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.tag-responsavel:hover {
+  background: var(--color-primary-200);
 }
 
 /* ========================================
