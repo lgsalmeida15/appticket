@@ -200,8 +200,8 @@ A API possui três tipos de usuários com diferentes níveis de permissão:
 
 2. **gerente** - Gerente
    - Pode visualizar e gerenciar chamados
-   - Pode fechar chamados
    - Pode visualizar grupos e estatísticas
+   - Não pode fechar chamados (exclusivo de administradores)
    - Não pode gerenciar usuários ou grupos
 
 3. **agente** - Agente/Técnico
@@ -216,7 +216,7 @@ A API possui três tipos de usuários com diferentes níveis de permissão:
 | Criar chamado | ✅ | ✅ | ✅ |
 | Listar chamados | ✅ | ✅ | ✅ (limitado) |
 | Atualizar chamado | ✅ | ✅ | ✅ (próprios) |
-| Fechar chamado | ✅ | ✅ | ❌ |
+| Fechar chamado | ✅ | ❌ | ❌ |
 | Reabrir chamado | ✅ | ❌ | ❌ |
 | Cancelar chamado | ✅ | ✅ | ❌ |
 | Gerenciar usuários | ✅ | ❌ | ❌ |
@@ -1119,7 +1119,7 @@ const response = await fetch('http://localhost:3000/api/chamados', {
 
 **Autenticação:** `Requer Token`
 
-**Permissões:** `Gerente` ou `Admin`
+**Permissões:** `Admin` (exclusivo)
 
 #### Parâmetros de Rota
 

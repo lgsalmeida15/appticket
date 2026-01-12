@@ -345,6 +345,7 @@ router.post('/:id/time/stop', idParamValidator, pararContagem);
  * /chamados/{id}/close:
  *   post:
  *     summary: Fechar chamado
+ *     description: Fechar chamado. Apenas administradores têm permissão para fechar chamados.
  *     tags: [Chamados]
  *     security:
  *       - bearerAuth: []
@@ -375,6 +376,8 @@ router.post('/:id/time/stop', idParamValidator, pararContagem);
  *     responses:
  *       201:
  *         description: Chamado fechado com sucesso
+ *       403:
+ *         description: Acesso negado. Apenas administradores podem fechar chamados
  */
 router.post('/:id/close', idParamValidator, verificarAdmin, fecharChamadoValidator, fecharChamado);
 
