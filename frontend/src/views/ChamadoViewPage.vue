@@ -395,8 +395,8 @@ const podeFechar = computed(() => {
   if (chamado.value.status_fechamento === 'fechado') return false;
   // Não pode fechar se está cancelado
   if (chamado.value.status === 'cancelado') return false;
-  // Admin ou gerente podem fechar
-  return authStore.isAdmin || authStore.isGerente;
+  // Apenas admin pode fechar
+  return authStore.isAdmin;
 });
 
 // Funções

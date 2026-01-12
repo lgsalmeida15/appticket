@@ -376,7 +376,7 @@ router.post('/:id/time/stop', idParamValidator, pararContagem);
  *       201:
  *         description: Chamado fechado com sucesso
  */
-router.post('/:id/close', idParamValidator, fecharChamadoValidator, fecharChamado);
+router.post('/:id/close', idParamValidator, verificarAdmin, fecharChamadoValidator, fecharChamado);
 
 /**
  * @swagger
