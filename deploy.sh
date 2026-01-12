@@ -92,6 +92,15 @@ check_env_file() {
         exit 1
     fi
     
+    # Converter quebras de linha Windows (CRLF) para Unix (LF)
+    # Isso resolve o erro "$'\r': command not found" quando .env é criado no Windows
+    # Remove \r do final de cada linha (não causa problema se não existir)
+    if grep -q $'\r' backend/.env 2>/dev/null; then
+        print_warning "Arquivo .env contém quebras de linha Windows (CRLF), convertendo para Unix (LF)..."
+        sed -i 's/\r$//' backend/.env
+        print_success "Conversão de quebras de linha concluída"
+    fi
+    
     # Verificar variáveis obrigatórias
     source backend/.env
     
