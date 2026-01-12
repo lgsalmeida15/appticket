@@ -22,9 +22,6 @@ services:
       API_URL: https://api-suporte.otmiz.tech/api
       WEBHOOK_URL: ${WEBHOOK_URL:-}
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - backend_uploads:/app/uploads
       - backend_logs:/app/logs
