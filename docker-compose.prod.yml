@@ -3,11 +3,12 @@ version: '3.8'
 services:
   # Backend API
   backend:
+    image: appticket-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
-    image: appticket-backend:latest
-    restart: unless-stopped
+    networks:
+      - network_public
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -22,23 +23,16 @@ services:
       API_URL: https://api-suporte.otmiz.tech/api
       WEBHOOK_URL: ${WEBHOOK_URL:-}
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+      TZ: America/Sao_Paulo
     volumes:
       - backend_uploads:/app/uploads
       - backend_logs:/app/logs
-    networks:
-      - network_public
     deploy:
+      mode: replicated
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      rollback_config:
-        parallelism: 1
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
       resources:
         limits:
           cpus: '1'
@@ -46,20 +40,39 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
-    labels:
-      # Traefik labels
-      - "traefik.enable=true"
-      - "traefik.docker.network=network_public"
-      # HTTP Router
-      - "traefik.http.routers.backend.rule=Host(`api-suporte.otmiz.tech`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.backend.service=backend"
-      # HTTP Service
-      - "traefik.http.services.backend.loadbalancer.server.port=3000"
-      # Middlewares
-      - "traefik.http.routers.backend.middlewares=backend-headers"
-      - "traefik.http.middlewares.backend-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 60s
+        max_failure_ratio: 0.3
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        failure_action: pause
+        monitor: 60s
+        max_failure_ratio: 0.3
+      labels:
+        # Traefik labels
+        - traefik.enable=true
+        - traefik.docker.network=network_public
+        # HTTP Router
+        - traefik.http.routers.appticket-backend.rule=Host(`api-suporte.otmiz.tech`)
+        - traefik.http.routers.appticket-backend.entrypoints=websecure
+        - traefik.http.routers.appticket-backend.priority=1
+        - traefik.http.routers.appticket-backend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.appticket-backend.service=appticket-backend
+        # HTTP Service
+        - traefik.http.services.appticket-backend.loadbalancer.server.port=3000
+        - traefik.http.services.appticket-backend.loadbalancer.passHostHeader=1
+        # Middlewares
+        - traefik.http.routers.appticket-backend.middlewares=backend-headers
+        - traefik.http.middlewares.backend-headers.headers.customrequestheaders.X-Forwarded-Proto=https
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
@@ -69,50 +82,65 @@ services:
 
   # Frontend
   frontend:
+    image: appticket-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
         VITE_API_URL: https://api-suporte.otmiz.tech/api
-    image: appticket-frontend:latest
-    restart: unless-stopped
     networks:
       - network_public
+    environment:
+      - NODE_ENV=production
+      - TZ=America/Sao_Paulo
     deploy:
+      mode: replicated
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      rollback_config:
-        parallelism: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 128M
-        reservations:
-          cpus: '0.25'
-          memory: 64M
-    labels:
-      # Traefik labels
-      - "traefik.enable=true"
-      - "traefik.docker.network=network_public"
-      # HTTP Router
-      - "traefik.http.routers.frontend.rule=Host(`suporte.otmiz.tech`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.frontend.service=frontend"
-      # HTTP Service
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 60s
+        max_failure_ratio: 0.3
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        failure_action: pause
+        monitor: 60s
+        max_failure_ratio: 0.3
+      labels:
+        # Traefik labels
+        - traefik.enable=true
+        - traefik.docker.network=network_public
+        # HTTPS Router (principal) - usando sufixo -https como pet-hotel que funciona
+        - traefik.http.routers.appticket-frontend-https.rule=Host(`suporte.otmiz.tech`)
+        - traefik.http.routers.appticket-frontend-https.entrypoints=websecure
+        - traefik.http.routers.appticket-frontend-https.priority=1
+        - traefik.http.routers.appticket-frontend-https.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.appticket-frontend-https.service=appticket-frontend
+        # HTTP Service
+        - traefik.http.services.appticket-frontend.loadbalancer.server.port=3001
+        - traefik.http.services.appticket-frontend.loadbalancer.passHostHeader=1
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/"]
       interval: 30s
       timeout: 3s
-      start_period: 5s
+      start_period: 10s
       retries: 3
 
 volumes:
@@ -123,5 +151,6 @@ volumes:
 
 networks:
   network_public:
+    name: network_public
     external: true
 
