@@ -105,7 +105,7 @@ check_env_file() {
     source backend/.env
     
     # Exportar variáveis para uso no docker stack deploy
-    export DB_NAME DB_USER DB_PASSWORD JWT_SECRET JWT_EXPIRES_IN WEBHOOK_URL WEBHOOK_SECRET
+    export DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD JWT_SECRET JWT_EXPIRES_IN WEBHOOK_URL WEBHOOK_SECRET
     
     if [ -z "$DB_PASSWORD" ] || [ "$DB_PASSWORD" = "ALTERAR_SENHA_FORTE_AQUI" ]; then
         print_error "DB_PASSWORD não foi configurado no .env"
@@ -213,11 +213,9 @@ wait_for_services() {
         # Verificar status dos serviços
         BACKEND_STATUS=$(docker service ps appticket_backend --format "{{.CurrentState}}" --no-trunc 2>/dev/null | head -n1 || echo "")
         FRONTEND_STATUS=$(docker service ps appticket_frontend --format "{{.CurrentState}}" --no-trunc 2>/dev/null | head -n1 || echo "")
-        POSTGRES_STATUS=$(docker service ps appticket_postgres --format "{{.CurrentState}}" --no-trunc 2>/dev/null | head -n1 || echo "")
         
         if [[ "$BACKEND_STATUS" == *"Running"* ]] && \
-           [[ "$FRONTEND_STATUS" == *"Running"* ]] && \
-           [[ "$POSTGRES_STATUS" == *"Running"* ]]; then
+           [[ "$FRONTEND_STATUS" == *"Running"* ]]; then
             print_success "Todos os serviços estão rodando"
             return 0
         fi
@@ -241,7 +239,6 @@ show_status() {
     print_info "Para ver logs detalhados:"
     echo "  docker service logs -f appticket_backend"
     echo "  docker service logs -f appticket_frontend"
-    echo "  docker service logs -f appticket_postgres"
 }
 
 # Executar migrations (opcional)
@@ -252,9 +249,9 @@ run_migrations() {
     echo "  cd backend"
     echo "  source .env"
     echo "  docker run --rm \\"
-    echo "    --network appticket_network_internal \\"
-    echo "    -e DB_HOST=postgres \\"
-    echo "    -e DB_PORT=5432 \\"
+    echo "    --network network_public \\"
+    echo "    -e DB_HOST=\$DB_HOST \\"
+    echo "    -e DB_PORT=\$DB_PORT \\"
     echo "    -e DB_NAME=\$DB_NAME \\"
     echo "    -e DB_USER=\$DB_USER \\"
     echo "    -e DB_PASSWORD=\$DB_PASSWORD \\"
@@ -268,19 +265,16 @@ run_migrations() {
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_info "Executando migrations..."
         
-        # Aguardar postgres ficar disponível
-        print_info "Aguardando PostgreSQL ficar disponível..."
-        sleep 10
-        
         # Carregar variáveis do .env
         source backend/.env
         
+        # Usar variáveis do .env para conexão com banco externo
         docker run --rm \
-            --network appticket_network_internal \
-            -e DB_HOST=postgres \
-            -e DB_PORT=5432 \
-            -e DB_NAME=${DB_NAME:-appticket} \
-            -e DB_USER=${DB_USER:-postgres} \
+            --network network_public \
+            -e DB_HOST=${DB_HOST} \
+            -e DB_PORT=${DB_PORT:-5432} \
+            -e DB_NAME=${DB_NAME} \
+            -e DB_USER=${DB_USER} \
             -e DB_PASSWORD=${DB_PASSWORD} \
             -v $(pwd)/backend:/app \
             -w /app \
