@@ -26,11 +26,16 @@ export const loginLimiter = rateLimit({
 });
 
 /**
- * Rate limiter para API geral (100 requisições por 15 minutos por IP)
+ * Rate limiter para API geral (500 requisições por 15 minutos por usuário/IP)
+ * Usa ID do usuário quando autenticado, senão usa IP
  */
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requisições
+  max: 500, // máximo 500 requisições
+  keyGenerator: (req) => {
+    // Usar ID do usuário se autenticado, senão usar IP
+    return req.usuario?.id?.toString() || req.ip;
+  },
   message: {
     error: {
       message: 'Muitas requisições. Tente novamente em alguns minutos.',
