@@ -48,6 +48,18 @@ export const criarChamadoSchema = yup.object({
       }
       const num = Number(originalValue);
       return isNaN(num) ? originalValue : num;
+    }),
+  
+  data_hora_inicio: yup
+    .string()
+    .nullable()
+    .optional()
+    .transform((value, originalValue) => {
+      // Converter string vazia, null ou undefined para undefined (opcional)
+      if (originalValue === '' || originalValue === null || originalValue === undefined) {
+        return undefined;
+      }
+      return originalValue;
     })
 });
 
@@ -98,6 +110,18 @@ export const editarChamadoSchema = yup.object({
       }
       const num = Number(originalValue);
       return isNaN(num) ? originalValue : num;
+    }),
+  
+  data_hora_inicio: yup
+    .string()
+    .nullable()
+    .optional()
+    .transform((value, originalValue) => {
+      // Converter string vazia, null ou undefined para undefined (opcional)
+      if (originalValue === '' || originalValue === null || originalValue === undefined) {
+        return undefined;
+      }
+      return originalValue;
     })
 });
 

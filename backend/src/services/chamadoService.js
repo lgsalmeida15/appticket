@@ -6,6 +6,7 @@ import historicoService from './historicoService.js';
 import auditoriaService from './auditoriaService.js';
 import eventEmitter from '../utils/EventEmitter.js';
 import logger from '../utils/logger.js';
+import { validarDataHoraInicio } from '../utils/validations.js';
 
 /**
  * Service de chamados
@@ -151,6 +152,29 @@ class ChamadoService {
       anexos = campos_customizados.anexos;
     }
 
+    // Processar data_hora_inicio (apenas para admins)
+    const agora = new Date();
+    let dataHoraInicio = agora;
+    let dataHoraInicioAlteradoPor = null;
+    let dataHoraInicioAlteradoEm = null;
+
+    if (isAdmin && dados.data_hora_inicio) {
+      const dataFornecida = new Date(dados.data_hora_inicio);
+      
+      // Validar data_hora_inicio
+      const validacao = validarDataHoraInicio(dataFornecida, agora);
+      if (!validacao.valido) {
+        const error = new Error(validacao.erro);
+        error.statusCode = 400;
+        error.code = 'DATA_HORA_INICIO_INVALIDA';
+        throw error;
+      }
+      
+      dataHoraInicio = dataFornecida;
+      dataHoraInicioAlteradoPor = usuarioId;
+      dataHoraInicioAlteradoEm = agora;
+    }
+
     // Criar chamado usando usuarioIdFinal
     const chamado = await chamadoRepository.criar({
       titulo,
@@ -168,7 +192,10 @@ class ChamadoService {
         ...campos_customizados,
         anexos
       },
-      data_abertura: new Date()
+      data_abertura: new Date(),
+      data_hora_inicio: dataHoraInicio,
+      data_hora_inicio_alterado_por: dataHoraInicioAlteradoPor,
+      data_hora_inicio_alterado_em: dataHoraInicioAlteradoEm
     });
 
     // Registrar no histórico usando usuarioIdFinal (solicitante)
@@ -307,7 +334,8 @@ class ChamadoService {
       status: chamado.status,
       atribuido_a: chamado.atribuido_a,
       grupo_executor_id: chamado.grupo_executor_id,
-      usuario_id: chamado.usuario_id
+      usuario_id: chamado.usuario_id,
+      data_hora_inicio: chamado.data_hora_inicio
     };
 
     // ✅ VALIDAÇÃO: Não permitir alteração direta de chamado_pai_id via update
@@ -317,6 +345,27 @@ class ChamadoService {
       error.statusCode = 400;
       error.code = 'ASSOCIACAO_PROTEGIDA';
       throw error;
+    }
+
+    // ✅ VALIDAÇÃO: Apenas ADMIN pode editar data_hora_inicio
+    if (dados.data_hora_inicio !== undefined) {
+      if (!isAdmin) {
+        const error = new Error('Apenas administradores podem alterar a data/hora de início');
+        error.statusCode = 403;
+        error.code = 'FORBIDDEN_DATA_HORA_INICIO';
+        throw error;
+      }
+      
+      const novaData = new Date(dados.data_hora_inicio);
+      
+      // Validar contra created_at do chamado existente
+      const validacao = validarDataHoraInicio(novaData, chamado.created_at);
+      if (!validacao.valido) {
+        const error = new Error(validacao.erro);
+        error.statusCode = 400;
+        error.code = 'DATA_HORA_INICIO_INVALIDA';
+        throw error;
+      }
     }
     
     // Preparar dados de atualização
@@ -334,6 +383,13 @@ class ChamadoService {
     if (dados.prazo !== undefined) dadosAtualizacao.prazo = dados.prazo ? new Date(dados.prazo) : null;
     if (dados.tags !== undefined) dadosAtualizacao.tags = dados.tags;
     if (dados.grupo_id !== undefined) dadosAtualizacao.grupo_id = dados.grupo_id;
+    
+    // Processar data_hora_inicio (apenas para admins - validação já foi feita acima)
+    if (dados.data_hora_inicio !== undefined && isAdmin) {
+      dadosAtualizacao.data_hora_inicio = new Date(dados.data_hora_inicio);
+      dadosAtualizacao.data_hora_inicio_alterado_por = usuarioLogado.id;
+      dadosAtualizacao.data_hora_inicio_alterado_em = new Date();
+    }
     
     // Processar solicitante_id (usuario_id) se fornecido (apenas para admins)
     if (isAdmin && dados.solicitante_id !== undefined && dados.solicitante_id !== null) {

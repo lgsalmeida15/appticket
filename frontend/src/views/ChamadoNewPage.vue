@@ -193,6 +193,11 @@ const criarChamado = async (formValues) => {
       }
     }
 
+    // Adicionar data_hora_inicio se fornecido (apenas para admins)
+    if (authStore.isAdmin && formValues.data_hora_inicio) {
+      dadosChamado.data_hora_inicio = formValues.data_hora_inicio;
+    }
+
     console.log('📤 Enviando chamado:', dadosChamado);
 
     // Criar chamado

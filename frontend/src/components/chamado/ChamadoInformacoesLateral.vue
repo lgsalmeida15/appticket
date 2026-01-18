@@ -66,6 +66,19 @@
         <strong>{{ formatarData(chamado.data_abertura) }}</strong>
       </div>
 
+      <div class="mb-3">
+        <small class="text-muted d-block">Criado em</small>
+        <strong>{{ formatarData(chamado.created_at) }}</strong>
+      </div>
+
+      <div class="mb-3" v-if="chamado.data_hora_inicio">
+        <small class="text-muted d-block">Data/Hora de Início</small>
+        <strong>{{ formatarData(chamado.data_hora_inicio) }}</strong>
+        <small v-if="chamado.data_hora_inicio_alterado_em" class="d-block text-muted">
+          Alterado em {{ formatarData(chamado.data_hora_inicio_alterado_em) }}
+        </small>
+      </div>
+
       <div class="mb-3" v-if="chamado.data_fechamento">
         <small class="text-muted d-block">Data de Fechamento</small>
         <strong>{{ formatarData(chamado.data_fechamento) }}</strong>

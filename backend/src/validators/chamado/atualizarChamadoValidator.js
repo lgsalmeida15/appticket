@@ -61,6 +61,19 @@ const atualizarChamadoSchema = z.object({
     .int('solicitante_id deve ser um número inteiro')
     .positive('solicitante_id deve ser um número positivo')
     .optional()
+  ),
+  data_hora_inicio: z.preprocess(
+    (val) => {
+      if (!val || val === '' || val === 'null' || val === 'undefined') return undefined;
+      if (typeof val === 'string') {
+        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+        if (datetimeLocalRegex.test(val)) {
+          return `${val}:00Z`;
+        }
+      }
+      return val;
+    },
+    z.string().datetime().optional()
   )
 }).refine(
   (data) => Object.keys(data).length > 0,

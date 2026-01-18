@@ -151,6 +151,28 @@ const Chamado = sequelize.define('chamado', {
     onUpdate: 'CASCADE',
     onDelete: 'SET NULL',
     comment: 'ID do chamado pai (relação parent/child)'
+  },
+  data_hora_inicio: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+    comment: 'Data/hora de início editável por admin, padrão = created_at'
+  },
+  data_hora_inicio_alterado_por: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'usuario',
+      key: 'id'
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+    comment: 'ID do admin que alterou a data/hora de início'
+  },
+  data_hora_inicio_alterado_em: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Data/hora em que a data/hora de início foi alterada'
   }
 }, {
   tableName: 'chamado',

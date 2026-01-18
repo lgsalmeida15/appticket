@@ -76,7 +76,23 @@ const criarChamadoSchema = z.object({
     z.string().datetime().nullable().optional()
   ),
   tags: z.array(z.string()).optional(),
-  campos_customizados: z.record(z.any()).optional()
+  campos_customizados: z.record(z.any()).optional(),
+  data_hora_inicio: z.preprocess(
+    (val) => {
+      if (!val || val === '' || val === 'null' || val === 'undefined') return undefined;
+      // Se for string no formato datetime-local (YYYY-MM-DDTHH:mm), converter para ISO
+      if (typeof val === 'string') {
+        // Formato datetime-local: YYYY-MM-DDTHH:mm
+        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+        if (datetimeLocalRegex.test(val)) {
+          // Adicionar segundos e timezone para formato ISO
+          return `${val}:00Z`;
+        }
+      }
+      return val;
+    },
+    z.string().datetime().optional()
+  )
 });
 
 export const criarChamadoValidator = validate(criarChamadoSchema, 'body');

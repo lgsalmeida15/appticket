@@ -138,6 +138,27 @@
         </small>
         <ErrorMessage v-if="errors.solicitante_id" :message="errors.solicitante_id" />
       </div>
+
+      <!-- Campo Data/Hora de Início (apenas para administradores) -->
+      <div class="col-md-6 mb-3">
+        <label for="data_hora_inicio" class="form-label">
+          Data/Hora de Início
+          <small class="text-muted">(opcional)</small>
+        </label>
+        <Field
+          id="data_hora_inicio"
+          name="data_hora_inicio"
+          v-model="values.data_hora_inicio"
+          type="datetime-local"
+          class="form-control"
+          :class="{ 'is-invalid': errors.data_hora_inicio }"
+          :max="formatarParaDateTimeLocal(new Date())"
+        />
+        <small class="form-text text-muted">
+          Deixe vazio para usar a data/hora atual. Não pode ser data futura.
+        </small>
+        <ErrorMessage v-if="errors.data_hora_inicio" :message="errors.data_hora_inicio" />
+      </div>
     </div>
 
     <FileUpload 
@@ -183,7 +204,8 @@ const props = defineProps({
       prioridade: 'media',
       grupo_id: '',
       grupo_executor_id: '',
-      solicitante_id: ''
+      solicitante_id: '',
+      data_hora_inicio: ''
     })
   },
   modoEdicao: {
@@ -245,6 +267,21 @@ const submitForm = () => {
   console.log('📊 Valores atuais do formulário:', values);
   console.log('⚠️ Erros atuais:', errors);
   onSubmit();
+};
+
+// Função auxiliar para formatar data para datetime-local
+const formatarParaDateTimeLocal = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  const hora = String(d.getHours()).padStart(2, '0');
+  const minuto = String(d.getMinutes()).padStart(2, '0');
+  
+  return `${ano}-${mes}-${dia}T${hora}:${minuto}`;
 };
 
 const clear = () => {

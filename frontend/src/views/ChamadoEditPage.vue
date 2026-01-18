@@ -198,6 +198,21 @@ const usuarios = ref([]);
 // Computed
 const grupos = computed(() => gruposStore.grupos.filter(g => g.ativo !== false));
 
+// Função auxiliar para formatar data para datetime-local
+const formatarParaDateTimeLocal = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  const hora = String(d.getHours()).padStart(2, '0');
+  const minuto = String(d.getMinutes()).padStart(2, '0');
+  
+  return `${ano}-${mes}-${dia}T${hora}:${minuto}`;
+};
+
 const formularioValues = computed(() => {
   if (!chamado.value) return null;
   
@@ -208,7 +223,8 @@ const formularioValues = computed(() => {
     prioridade: chamado.value.prioridade || 'media',
     grupo_id: chamado.value.grupo_id || '',
     grupo_executor_id: chamado.value.grupo_executor_id || '',
-    solicitante_id: chamado.value.usuario_id || ''
+    solicitante_id: chamado.value.usuario_id || '',
+    data_hora_inicio: chamado.value.data_hora_inicio ? formatarParaDateTimeLocal(chamado.value.data_hora_inicio) : ''
   };
 });
 
@@ -301,6 +317,11 @@ const salvarChamado = async (formValues) => {
       if (!isNaN(solicitanteId) && solicitanteId > 0) {
         dadosAtualizacao.solicitante_id = solicitanteId;
       }
+    }
+
+    // Adicionar data_hora_inicio se fornecido (apenas para admins)
+    if (authStore.isAdmin && formValues.data_hora_inicio) {
+      dadosAtualizacao.data_hora_inicio = formValues.data_hora_inicio;
     }
     
     // Adicionar arquivos se houver novos
