@@ -7,7 +7,13 @@ const criarGrupoSchema = z.object({
   ativo: z.boolean().optional(),
   solicitante: z.boolean().optional(),
   executor: z.boolean().optional(),
-  webhook_url: z.string().url('URL do webhook inválida').optional().nullable(),
+  webhook_url: z.string()
+    .transform(val => val === '' ? null : val)
+    .refine(val => val === null || z.string().url().safeParse(val).success, {
+      message: 'URL do webhook inválida'
+    })
+    .optional()
+    .nullable(),
   webhook_eventos: z.array(z.string()).optional()
 });
 

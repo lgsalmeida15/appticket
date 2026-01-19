@@ -6,7 +6,8 @@ class CriarGrupoDTO {
     this.nome = dados.nome;
     this.descricao = dados.descricao || null;
     this.ativo = dados.ativo !== undefined ? dados.ativo : true;
-    this.webhook_url = dados.webhook_url || null;
+    // Transformar string vazia em null
+    this.webhook_url = dados.webhook_url && dados.webhook_url.trim() !== '' ? dados.webhook_url : null;
     this.webhook_eventos = dados.webhook_eventos || [];
   }
 

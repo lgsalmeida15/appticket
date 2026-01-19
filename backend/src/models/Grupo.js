@@ -45,8 +45,14 @@ const Grupo = sequelize.define('grupo', {
     type: DataTypes.STRING(500),
     allowNull: true,
     validate: {
-      isUrl: {
-        msg: 'URL do webhook inválida'
+      isUrlIfNotEmpty(value) {
+        // Só valida URL se o valor existir e não estiver vazio
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+          const urlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+          if (!urlRegex.test(value)) {
+            throw new Error('URL do webhook inválida');
+          }
+        }
       }
     }
   },

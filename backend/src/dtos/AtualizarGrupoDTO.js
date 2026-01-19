@@ -6,7 +6,10 @@ class AtualizarGrupoDTO {
     this.nome = dados.nome;
     this.descricao = dados.descricao;
     this.ativo = dados.ativo;
-    this.webhook_url = dados.webhook_url;
+    // Transformar string vazia em null
+    this.webhook_url = dados.webhook_url !== undefined 
+      ? (dados.webhook_url && dados.webhook_url.trim() !== '' ? dados.webhook_url : null)
+      : undefined;
     this.webhook_eventos = dados.webhook_eventos;
   }
 

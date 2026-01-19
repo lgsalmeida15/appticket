@@ -91,10 +91,6 @@
                 <span class="meta-label">Membros</span>
               </div>
 
-              <div v-if="grupo.webhook_url" class="meta-item">
-                <i class="bi bi-webhook"></i>
-                <span class="meta-label">Webhook</span>
-              </div>
             </div>
 
             <div v-if="grupo.usuarios && grupo.usuarios.length > 0" class="membros-list">
@@ -226,20 +222,6 @@
               </div>
 
               <div class="mb-3">
-                <label for="webhook_url" class="form-label">URL do Webhook</label>
-                <input
-                  v-model="formulario.webhook_url"
-                  type="url"
-                  class="form-control"
-                  id="webhook_url"
-                  placeholder="https://..."
-                >
-                <small class="form-text text-muted">
-                  URL para receber notificações de eventos deste grupo
-                </small>
-              </div>
-
-              <div class="mb-3">
                 <label class="form-label d-block">Permissões do Grupo</label>
                 <div class="form-check">
                   <input
@@ -327,7 +309,6 @@ const filtros = ref({
 const formulario = ref({
   nome: '',
   descricao: '',
-  webhook_url: '',
   solicitante: true,
   executor: true,
   ativo: true
@@ -371,7 +352,6 @@ const abrirModalNovo = () => {
   formulario.value = {
     nome: '',
     descricao: '',
-    webhook_url: '',
     solicitante: true,
     executor: true,
     ativo: true
@@ -385,7 +365,6 @@ const abrirModalEditar = (grupo) => {
   formulario.value = {
     nome: grupo.nome,
     descricao: grupo.descricao || '',
-    webhook_url: grupo.webhook_url || '',
     solicitante: grupo.solicitante !== undefined ? grupo.solicitante : true,
     executor: grupo.executor !== undefined ? grupo.executor : true,
     ativo: grupo.ativo
