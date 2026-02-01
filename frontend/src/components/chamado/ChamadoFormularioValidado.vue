@@ -150,6 +150,8 @@
           name="data_hora_inicio"
           v-model="values.data_hora_inicio"
           type="datetime-local"
+          lang="pt-BR"
+          step="60"
           class="form-control"
           :class="{ 'is-invalid': errors.data_hora_inicio }"
           :max="formatarParaDateTimeLocal(new Date())"
@@ -302,4 +304,25 @@ const clear = () => {
 
 defineExpose({ clear, onSubmit, submitForm });
 </script>
+
+<style scoped>
+input[type="datetime-local"] {
+  appearance: none;
+}
+
+/* Remover am/pm visível em navegadores WebKit */
+input[type="datetime-local"]::-webkit-datetime-edit-ampm-field {
+  display: none;
+}
+
+/* Ajustar espaçamento dos campos de hora/dia */
+input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
+  gap: 0.3rem;
+}
+
+/* Remover AM/PM no Firefox */
+input[type="datetime-local"]::-moz-datetime-edit-ampm-field {
+  display: none;
+}
+</style>
 

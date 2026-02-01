@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { validate } from '../index.js';
-import path from 'path';
+import { parseDateTimeLocal } from '../../utils/dateTimeHelpers.js';
 
 const atualizarChamadoSchema = z.object({
   titulo: z.string().min(3, 'Título deve ter no mínimo 3 caracteres').max(200, 'Título deve ter no máximo 200 caracteres').optional(),
@@ -18,16 +18,11 @@ const atualizarChamadoSchema = z.object({
   ),
   prazo: z.preprocess(
     (val) => {
-      if (!val || val === '' || val === 'null' || val === 'undefined') return null;
-      if (typeof val === 'string') {
-        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-        if (datetimeLocalRegex.test(val)) {
-          return `${val}:00Z`;
-        }
-      }
-      return val;
+      const parsed = parseDateTimeLocal(val);
+      if (parsed === undefined) return null;
+      return parsed;
     },
-    z.string().datetime().nullable().optional()
+    z.date().nullable().optional()
   ),
   tags: z.array(z.string()).optional(),
   campos_customizados: z.record(z.any()).optional(),
@@ -63,17 +58,8 @@ const atualizarChamadoSchema = z.object({
     .optional()
   ),
   data_hora_inicio: z.preprocess(
-    (val) => {
-      if (!val || val === '' || val === 'null' || val === 'undefined') return undefined;
-      if (typeof val === 'string') {
-        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-        if (datetimeLocalRegex.test(val)) {
-          return `${val}:00Z`;
-        }
-      }
-      return val;
-    },
-    z.string().datetime().optional()
+    (val) => parseDateTimeLocal(val),
+    z.date().optional()
   )
 }).refine(
   (data) => Object.keys(data).length > 0,

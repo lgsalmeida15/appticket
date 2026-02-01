@@ -63,7 +63,17 @@
 
       <div class="mb-3">
         <small class="text-muted d-block">Data de Abertura</small>
-        <strong>{{ formatarData(chamado.data_abertura) }}</strong>
+        <strong>
+          {{
+            formatarData(chamado.data_hora_inicio || chamado.data_abertura)
+          }}
+        </strong>
+        <small
+          v-if="chamado.data_hora_inicio && chamado.data_hora_inicio !== chamado.data_abertura"
+          class="d-block text-muted"
+        >
+          Registrada originalmente em {{ formatarData(chamado.data_abertura) }}
+        </small>
       </div>
 
       <div class="mb-3">
