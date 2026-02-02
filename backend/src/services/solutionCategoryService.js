@@ -151,50 +151,32 @@ class SolutionCategoryService {
   }
 
   /**
-   * Desativar categoria
+   * Excluir categoria
    * @param {number} id
    * @param {number} usuarioId
    * @param {Object} req
-   * @returns {Promise<Object>}
+   * @returns {Promise<boolean>}
    */
-  async desativar(id, usuarioId = null, req = null) {
+  async excluir(id, usuarioId = null, req = null) {
     const categoria = await this.buscarPorId(id);
-    const resultado = await solutionCategoryRepository.deactivate(id);
+    
+    // Dados para auditoria antes de excluir
+    const dadosExcluidos = {
+      categoria_nivel_1: categoria.categoria_nivel_1,
+      categoria_nivel_2: categoria.categoria_nivel_2,
+      categoria_nivel_3: categoria.categoria_nivel_3,
+      ativo: categoria.ativo
+    };
+
+    const resultado = await solutionCategoryRepository.delete(id);
 
     // Registrar auditoria
     if (usuarioId) {
-      await auditoriaService.registrarAtualizacao(
+      await auditoriaService.registrarExclusao(
         usuarioId,
         'solution_category',
         id,
-        { ativo: true },
-        { ativo: false },
-        req
-      );
-    }
-
-    return resultado;
-  }
-
-  /**
-   * Ativar categoria
-   * @param {number} id
-   * @param {number} usuarioId
-   * @param {Object} req
-   * @returns {Promise<Object>}
-   */
-  async ativar(id, usuarioId = null, req = null) {
-    const categoria = await this.buscarPorId(id);
-    const resultado = await solutionCategoryRepository.activate(id);
-
-    // Registrar auditoria
-    if (usuarioId) {
-      await auditoriaService.registrarAtualizacao(
-        usuarioId,
-        'solution_category',
-        id,
-        { ativo: false },
-        { ativo: true },
+        dadosExcluidos,
         req
       );
     }

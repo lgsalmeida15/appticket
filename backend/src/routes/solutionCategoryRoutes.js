@@ -5,8 +5,7 @@ import {
   buscarCategoria,
   criarCategoria,
   atualizarCategoria,
-  desativarCategoria,
-  ativarCategoria,
+  excluirCategoria,
   buscarNiveis1,
   buscarNiveis2,
   buscarNiveis3
@@ -194,9 +193,9 @@ router.put('/:id', idParamValidator, verificarAdmin, atualizarCategoriaValidator
 
 /**
  * @swagger
- * /solution-categories/{id}/deactivate:
- *   patch:
- *     summary: Desativar categoria (admin)
+ * /solution-categories/{id}:
+ *   delete:
+ *     summary: Excluir categoria (admin)
  *     tags: [Solution Categories]
  *     security:
  *       - bearerAuth: []
@@ -208,29 +207,9 @@ router.put('/:id', idParamValidator, verificarAdmin, atualizarCategoriaValidator
  *           type: integer
  *     responses:
  *       200:
- *         description: Categoria desativada com sucesso
+ *         description: Categoria excluída com sucesso
  */
-router.patch('/:id/deactivate', idParamValidator, verificarAdmin, desativarCategoria);
-
-/**
- * @swagger
- * /solution-categories/{id}/activate:
- *   patch:
- *     summary: Ativar categoria (admin)
- *     tags: [Solution Categories]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Categoria ativada com sucesso
- */
-router.patch('/:id/activate', idParamValidator, verificarAdmin, ativarCategoria);
+router.delete('/:id', idParamValidator, verificarAdmin, excluirCategoria);
 
 export default router;
 

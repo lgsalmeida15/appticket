@@ -70,29 +70,17 @@ class SolutionCategoryRepository extends BaseRepository {
   }
 
   /**
-   * Desativar categoria (soft delete)
+   * Deletar categoria (hard delete)
    * @param {number} id
-   * @returns {Promise<Object>}
+   * @returns {Promise<boolean>}
    */
-  async deactivate(id) {
+  async delete(id) {
     const categoria = await this.findById(id);
     if (!categoria) {
       throw new Error('Categoria não encontrada');
     }
-    return await categoria.update({ ativo: false });
-  }
-
-  /**
-   * Ativar categoria
-   * @param {number} id
-   * @returns {Promise<Object>}
-   */
-  async activate(id) {
-    const categoria = await this.findById(id);
-    if (!categoria) {
-      throw new Error('Categoria não encontrada');
-    }
-    return await categoria.update({ ativo: true });
+    await categoria.destroy();
+    return true;
   }
 
   /**

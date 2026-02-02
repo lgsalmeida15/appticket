@@ -102,9 +102,9 @@ export const atualizarCategoria = async (req, res, next) => {
 };
 
 /**
- * Desativar categoria
+ * Excluir categoria
  */
-export const desativarCategoria = async (req, res, next) => {
+export const excluirCategoria = async (req, res, next) => {
   try {
     const { id } = req.params;
     const idNum = parseInt(id);
@@ -114,35 +114,10 @@ export const desativarCategoria = async (req, res, next) => {
       error.code = 'INVALID_ID';
       throw error;
     }
-    const categoria = await solutionCategoryService.desativar(idNum, req.usuario.id, req);
+    await solutionCategoryService.excluir(idNum, req.usuario.id, req);
     
     res.json({
-      message: 'Categoria desativada com sucesso',
-      categoria
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Ativar categoria
- */
-export const ativarCategoria = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const idNum = parseInt(id);
-    if (isNaN(idNum) || idNum <= 0) {
-      const error = new Error('ID inválido');
-      error.statusCode = 400;
-      error.code = 'INVALID_ID';
-      throw error;
-    }
-    const categoria = await solutionCategoryService.ativar(idNum, req.usuario.id, req);
-    
-    res.json({
-      message: 'Categoria ativada com sucesso',
-      categoria
+      message: 'Categoria excluída com sucesso'
     });
   } catch (error) {
     next(error);
@@ -193,8 +168,7 @@ export default {
   buscarCategoria,
   criarCategoria,
   atualizarCategoria,
-  desativarCategoria,
-  ativarCategoria,
+  excluirCategoria,
   buscarNiveis1,
   buscarNiveis2,
   buscarNiveis3

@@ -45,19 +45,11 @@ class SolutionCategoryService {
   }
 
   /**
-   * Desativar categoria
+   * Excluir categoria
    */
-  async desativar(id) {
-    const response = await http.patch(`/solution-categories/${id}/deactivate`);
-    return response.data.categoria;
-  }
-
-  /**
-   * Ativar categoria
-   */
-  async ativar(id) {
-    const response = await http.patch(`/solution-categories/${id}/activate`);
-    return response.data.categoria;
+  async excluir(id) {
+    const response = await http.delete(`/solution-categories/${id}`);
+    return response.data;
   }
 
   /**

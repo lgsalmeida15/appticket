@@ -150,20 +150,11 @@
                                   <i class="bi bi-pencil"></i>
                                 </button>
                                 <button 
-                                  v-if="n3.ativo"
-                                  class="btn btn-sm btn-outline-warning"
-                                  @click.stop="desativarCategoria(n3.id)"
-                                  title="Desativar"
+                                  class="btn btn-sm btn-outline-danger"
+                                  @click.stop="excluirCategoria(n3.id)"
+                                  title="Excluir"
                                 >
-                                  <i class="bi bi-x-circle"></i>
-                                </button>
-                                <button 
-                                  v-else
-                                  class="btn btn-sm btn-outline-success"
-                                  @click.stop="ativarCategoria(n3.id)"
-                                  title="Ativar"
-                                >
-                                  <i class="bi bi-check-circle"></i>
+                                  <i class="bi bi-trash"></i>
                                 </button>
                               </div>
                             </td>
@@ -698,34 +689,19 @@ const salvarCategoria = async () => {
   }
 };
 
-const desativarCategoria = async (id) => {
-  if (!confirm('Deseja realmente desativar esta categoria?')) return;
+const excluirCategoria = async (id) => {
+  if (!confirm('Deseja realmente excluir esta categoria permanentemente?')) return;
   
   try {
-    await solutionCategoryService.desativar(id);
-    alert('Categoria desativada com sucesso!');
+    await solutionCategoryService.excluir(id);
+    alert('Categoria excluída com sucesso!');
     await carregarCategorias();
   } catch (err) {
-    console.error('Erro ao desativar categoria:', err);
+    console.error('Erro ao excluir categoria:', err);
     const errorMessage = err?.response?.data?.error?.message 
       || err?.response?.data?.message 
       || err.message 
-      || 'Erro ao desativar categoria';
-    alert(errorMessage);
-  }
-};
-
-const ativarCategoria = async (id) => {
-  try {
-    await solutionCategoryService.ativar(id);
-    alert('Categoria ativada com sucesso!');
-    await carregarCategorias();
-  } catch (err) {
-    console.error('Erro ao ativar categoria:', err);
-    const errorMessage = err?.response?.data?.error?.message 
-      || err?.response?.data?.message 
-      || err.message 
-      || 'Erro ao ativar categoria';
+      || 'Erro ao excluir categoria';
     alert(errorMessage);
   }
 };
