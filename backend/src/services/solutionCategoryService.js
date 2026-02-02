@@ -101,9 +101,9 @@ class SolutionCategoryService {
 
     // Se está alterando os níveis, verificar duplicidade
     if (categoria_nivel_1 || categoria_nivel_2 || categoria_nivel_3) {
-      const nivel1 = categoria_nivel_1 || categoria.categoria_nivel_1;
-      const nivel2 = categoria_nivel_2 || categoria.categoria_nivel_2;
-      const nivel3 = categoria_nivel_3 || categoria.categoria_nivel_3;
+      const nivel1 = (categoria_nivel_1 || categoria.categoria_nivel_1).trim();
+      const nivel2 = (categoria_nivel_2 || categoria.categoria_nivel_2).trim();
+      const nivel3 = (categoria_nivel_3 || categoria.categoria_nivel_3).trim();
 
       const existe = await solutionCategoryRepository.exists(
         nivel1,
