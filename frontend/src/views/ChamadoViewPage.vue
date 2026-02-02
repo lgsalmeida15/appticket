@@ -522,18 +522,12 @@ const adicionarComentario = async (comentario) => {
       dadosComentario
     );
     
-    // Adicionar comentário à lista local
-    if (!chamado.value.comentarios) {
-      chamado.value.comentarios = [];
-    }
-    chamado.value.comentarios.push(novoComentario);
-    
     // Limpar formulário de comentário
     if (comentariosRef.value) {
       comentariosRef.value.limpar?.();
     }
     
-    // Recarregar chamado completo
+    // Recarregar chamado completo para garantir sincronia e ordenação correta
     await carregarChamado();
   } catch (err) {
     console.error('Erro ao adicionar comentário:', err);

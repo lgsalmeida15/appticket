@@ -6,9 +6,9 @@
     </h6>
     
     <!-- Lista de Comentários -->
-    <div v-if="comentarios?.length" class="mb-3">
+    <div v-if="comentariosOrdenados?.length" class="mb-3">
       <div 
-        v-for="comentario in comentarios" 
+        v-for="comentario in comentariosOrdenados" 
         :key="comentario.id"
         class="card mb-2"
         :class="{ 'border-warning': comentario.interno }"
@@ -135,6 +135,15 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['adicionar']);
+
+const comentariosOrdenados = computed(() => {
+  if (!props.comentarios) return [];
+  return [...props.comentarios].sort((a, b) => {
+    const dataA = new Date(a.data_hora || a.created_at);
+    const dataB = new Date(b.data_hora || b.created_at);
+    return dataA - dataB;
+  });
+});
 
 const novoComentario = ref({
   texto: '',
