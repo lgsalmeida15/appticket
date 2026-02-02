@@ -327,7 +327,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useChamadosStore } from '@/stores/chamados';
 import { useUsuariosStore } from '@/stores/usuarios';
@@ -540,6 +540,16 @@ const adicionarComentario = async (comentario) => {
 const voltarParaLista = () => {
   router.push({ name: 'chamados' });
 };
+
+// Observar mudanças no ID da rota para recarregar os dados
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId && chamado.value && String(newId) !== String(chamado.value.id)) {
+      carregarChamado();
+    }
+  }
+);
 
 const irParaEdicao = () => {
   router.push({ name: 'chamado-edit', params: { id: chamado.value.id } });
