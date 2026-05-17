@@ -271,7 +271,7 @@
                   
                   <div class="mb-3">
                     <p class="mb-2"><strong>Você está prestes a deletar permanentemente:</strong></p>
-                    <div class="bg-white p-3 rounded border border-danger">
+                    <div class="delete-item-details p-3 rounded border border-danger">
                       <p class="mb-1 text-danger fw-bold">{{ deleteItem.name }}</p>
                       <p class="mb-0 small text-muted">{{ deleteItem.warning }}</p>
                     </div>
@@ -695,6 +695,10 @@ onBeforeUnmount(() => {
 .badge {
   font-size: 0.85rem;
   padding: 0.4em 0.8em;
+}
+
+.delete-item-details {
+  background-color: var(--color-bg-primary);
 }
 
 /* Overlay do alerta de exclusão */

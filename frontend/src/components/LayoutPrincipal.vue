@@ -154,6 +154,14 @@
 
           <!-- Actions ou informações extras -->
           <div class="header-right">
+            <!-- Theme Toggle -->
+            <button 
+              @click="toggleTheme" 
+              class="theme-toggle-btn me-2"
+              :title="isDarkMode ? 'Mudar para tema claro' : 'Mudar para tema escuro'"
+            >
+              <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill'"></i>
+            </button>
             <slot name="header-actions"></slot>
           </div>
         </div>
@@ -180,6 +188,7 @@ const authStore = useAuthStore();
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
 const isUserMenuOpen = ref(false);
+const isDarkMode = ref(false);
 
 // Refs para o menu do usuário
 const userMenuTrigger = ref(null);
@@ -214,6 +223,13 @@ const pageTitle = computed(() => {
 });
 
 // Funções
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value;
+  const theme = isDarkMode.value ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+};
+
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
   // Salvar preferência no localStorage
@@ -250,6 +266,18 @@ const handleClickOutside = (event) => {
 
 // Lifecycle
 onMounted(() => {
+  // Recuperar preferência de tema
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    isDarkMode.value = true;
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else {
+    isDarkMode.value = false;
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+
   // Recuperar preferência salva
   const savedState = localStorage.getItem('sidebar-collapsed');
   if (savedState === 'true') {
@@ -665,6 +693,32 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-base);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 1.1rem;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+  color: var(--color-warning-500);
 }
 
 /* ========================================

@@ -17,7 +17,7 @@
         <div class="modal-body">
           <!-- Adicionar Novo Grupo -->
           <div class="card mb-3">
-            <div class="card-header bg-light">
+            <div class="card-header info-box">
               <h6 class="mb-0">
                 <i class="bi bi-plus-circle me-2"></i>
                 Adicionar ao Grupo
@@ -77,7 +77,7 @@
 
           <!-- Lista de Grupos do Usuário -->
           <div class="card">
-            <div class="card-header bg-light">
+            <div class="card-header info-box">
               <h6 class="mb-0">
                 <i class="bi bi-list-ul me-2"></i>
                 Grupos Atuais
@@ -291,6 +291,12 @@ defineExpose({
   clearForm
 });
 </script>
+
+<style scoped>
+.info-box {
+  background-color: var(--color-bg-tertiary);
+}
+</style>
 
 <style scoped>
 .badge {

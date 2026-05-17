@@ -233,22 +233,22 @@ defineExpose({
 
 <style scoped>
 .upload-area {
-  border: 2px dashed #dee2e6;
-  border-radius: 0.375rem;
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-base);
   padding: 1rem;
-  background-color: #f8f9fa;
+  background-color: var(--color-bg-secondary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
 }
 
 .upload-area:hover {
-  border-color: #0d6efd;
-  background-color: #e7f1ff;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-tertiary);
 }
 
 .upload-area.dragover {
-  border-color: #0d6efd;
-  background-color: #cfe2ff;
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
 }
 
 .files-list {
@@ -262,9 +262,9 @@ defineExpose({
   align-items: center;
   gap: 1rem;
   padding: 0.75rem;
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  background-color: #fff;
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-base);
+  background-color: var(--color-bg-primary);
 }
 
 .file-preview {
@@ -280,6 +280,7 @@ defineExpose({
   max-width: 50px;
   max-height: 50px;
   object-fit: cover;
+  border-radius: var(--radius-sm);
 }
 
 .file-icon {
@@ -296,6 +297,7 @@ defineExpose({
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text-primary);
 }
 
 .file-size {

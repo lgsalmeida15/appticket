@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-light">
+  <div class="card info-sidebar-card">
     <div class="card-body">
       <h6 class="mb-3">
         <i class="bi bi-info-circle me-2"></i>
@@ -109,4 +109,17 @@ defineProps({
   }
 });
 </script>
+
+<style scoped>
+.info-sidebar-card {
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-medium);
+}
+
+hr {
+  margin: var(--space-4) 0;
+  opacity: 0.1;
+  border-color: var(--color-text-primary);
+}
+</style>
 

@@ -4,6 +4,82 @@
    ======================================== */
 
 /* ========================================
+   MODO ESCURO - Overrides Globais
+   ======================================== */
+[data-theme="dark"] {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] p,
+[data-theme="dark"] span:not(.badge),
+[data-theme="dark"] div:not(.badge),
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4, 
+[data-theme="dark"] h5, 
+[data-theme="dark"] h6,
+[data-theme="dark"] .h1, 
+[data-theme="dark"] .h2, 
+[data-theme="dark"] .h3, 
+[data-theme="dark"] .h4, 
+[data-theme="dark"] .h5, 
+[data-theme="dark"] .h6 {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] strong, 
+[data-theme="dark"] b, 
+[data-theme="dark"] label,
+[data-theme="dark"] .form-label {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--color-text-tertiary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .card {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+  color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item + .breadcrumb-item::before {
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .table {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-tertiary);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] hr {
+  border-color: var(--color-border-medium);
+  opacity: 0.2;
+}
+
+[data-theme="dark"] .card-header {
+  color: var(--color-text-primary);
+}
+
+/* ========================================
    RESET E BASE
    ======================================== */
 * {

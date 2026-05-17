@@ -15,7 +15,7 @@
               <!-- Descrição -->
               <div class="mb-4">
                 <h6 class="text-muted mb-2">Descrição</h6>
-                <p class="bg-light p-3 rounded">{{ chamado.descricao }}</p>
+                <p class="info-box p-3 rounded">{{ chamado.descricao }}</p>
                 
                 <!-- Anexos do Chamado -->
                 <div v-if="chamado.campos_customizados?.anexos?.length" class="mt-3">
@@ -154,4 +154,10 @@ const limparComentario = () => {
 
 defineExpose({ limparComentario });
 </script>
+
+<style scoped>
+.info-box {
+  background-color: var(--color-bg-tertiary);
+}
+</style>
 

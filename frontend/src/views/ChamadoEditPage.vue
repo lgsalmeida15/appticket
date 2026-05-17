@@ -61,7 +61,7 @@
                   <i class="bi bi-paperclip me-1"></i>
                   Anexos Existentes ({{ chamado.campos_customizados.anexos.length }})
                 </h6>
-                <div class="d-flex flex-wrap gap-2 mb-3 p-3 bg-light rounded">
+                <div class="d-flex flex-wrap gap-2 mb-3 p-3 info-box rounded">
                   <a 
                     v-for="(anexo, index) in chamado.campos_customizados.anexos" 
                     :key="index"
@@ -434,6 +434,12 @@ onMounted(async () => {
   await carregarChamado();
 });
 </script>
+
+<style scoped>
+.info-box {
+  background-color: var(--color-bg-tertiary);
+}
+</style>
 
 <style scoped>
 .breadcrumb {

@@ -73,7 +73,7 @@
               class="card mb-2 border-primary-subtle"
             >
               <div 
-                class="card-header bg-light d-flex justify-content-between align-items-center cursor-pointer"
+                class="card-header info-box d-flex justify-content-between align-items-center cursor-pointer"
                 @click="toggleNode(`n1-${n1.nome}`)"
               >
                 <div class="d-flex align-items-center">
@@ -98,7 +98,7 @@
                   class="border-bottom last-child-border-0"
                 >
                   <div 
-                    class="d-flex justify-content-between align-items-center p-2 ps-4 bg-light-subtle cursor-pointer hover-bg"
+                    class="d-flex justify-content-between align-items-center p-2 ps-4 info-box-subtle cursor-pointer hover-bg"
                     @click="toggleNode(`n2-${n1.nome}-${n2.nome}`)"
                   >
                     <div class="d-flex align-items-center">
@@ -116,7 +116,7 @@
                     </div>
                   </div>
 
-                  <div v-if="isExpanded(`n2-${n1.nome}-${n2.nome}`)" class="ps-5 pe-3 py-2 bg-white">
+                  <div v-if="isExpanded(`n2-${n1.nome}-${n2.nome}`)" class="ps-5 pe-3 py-2 info-box-inner">
                     <div class="table-responsive">
                       <table class="table table-sm table-hover mb-0">
                         <thead>
@@ -736,6 +736,18 @@ onMounted(() => {
 
 .last-child-border-0:last-child {
   border-bottom: 0 !important;
+}
+
+.info-box {
+  background-color: var(--color-bg-tertiary);
+}
+
+.info-box-subtle {
+  background-color: var(--color-bg-secondary);
+}
+
+.info-box-inner {
+  background-color: var(--color-bg-primary);
 }
 
 .bg-light-subtle {

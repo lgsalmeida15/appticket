@@ -25,7 +25,7 @@
           <i class="bi bi-arrow-up-circle me-1"></i>
           Chamado Pai
         </h6>
-        <div class="border rounded p-3 bg-light">
+        <div class="border rounded p-3 info-box">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <router-link
@@ -230,6 +230,12 @@ const desassociarFilho = async (filho) => {
   }
 };
 </script>
+
+<style scoped>
+.info-box {
+  background-color: var(--color-bg-tertiary);
+}
+</style>
 
 <style scoped>
 .list-group-item {

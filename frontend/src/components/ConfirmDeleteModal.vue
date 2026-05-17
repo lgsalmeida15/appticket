@@ -34,7 +34,7 @@
               Você está prestes a deletar <strong>permanentemente</strong>:
             </p>
 
-            <div class="card bg-light mb-3">
+            <div class="card info-box mb-3">
               <div class="card-body">
                 <h6 class="card-title text-danger mb-2">{{ itemType }}</h6>
                 <p class="card-text mb-0">
@@ -233,6 +233,12 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.info-box {
+  background-color: var(--color-bg-tertiary);
+}
+</style>
 
 <style scoped>
 .modal-backdrop {

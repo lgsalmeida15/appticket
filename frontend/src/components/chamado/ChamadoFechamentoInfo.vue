@@ -35,7 +35,7 @@
       <!-- Descrição do Fechamento -->
       <div class="mb-3">
         <label class="form-label fw-bold text-muted">Descrição do Fechamento</label>
-        <div class="p-3 bg-light rounded">
+        <div class="p-3 info-box rounded">
           <p class="mb-0" style="white-space: pre-wrap;">{{ fechamento.descricao_fechamento }}</p>
         </div>
       </div>
@@ -91,6 +91,10 @@ const formatarDataHora = (data) => {
   font-size: 0.9rem;
   padding: 0.5em 0.8em;
   width: fit-content;
+}
+
+.info-box {
+  background-color: var(--color-bg-tertiary);
 }
 
 .bg-light {
