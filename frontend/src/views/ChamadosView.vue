@@ -353,8 +353,10 @@ onUnmounted(() => {
 
 <style scoped>
 .chamados-view {
-  max-width: 1400px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .view-controls .btn {

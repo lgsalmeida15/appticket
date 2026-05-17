@@ -298,7 +298,6 @@ onUnmounted(() => {
    LAYOUT PRINCIPAL - SaaS Modern
    ======================================== */
 .app-layout {
-  display: flex;
   min-height: 100vh;
   background-color: var(--color-bg-secondary);
 }
@@ -676,6 +675,12 @@ onUnmounted(() => {
   justify-content: space-between;
 }
 
+@media (min-width: 1600px) {
+  .header-content {
+    padding: 0 1.5%;
+  }
+}
+
 .header-left {
   display: flex;
   align-items: center;
@@ -727,6 +732,12 @@ onUnmounted(() => {
 .app-content {
   flex: 1;
   padding: var(--space-6);
+}
+
+@media (min-width: 1600px) {
+  .app-content {
+    padding: var(--space-6) 1.5%;
+  }
 }
 
 /* ========================================

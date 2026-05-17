@@ -315,8 +315,10 @@ const isSlaEstourado = (prazo) => {
   position: relative;
   overflow-x: auto;
   padding-bottom: var(--space-4);
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-medium);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Barra de sincronização discreta */
