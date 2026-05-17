@@ -29,7 +29,10 @@ export const useUsuariosStore = defineStore('usuarios', {
       this.error = null;
 
       try {
-        const response = await usuarioService.listar(params);
+        const response = await usuarioService.listar({
+          ...params,
+          incluirGrupos: params.incluirGrupos || false
+        });
         
         this.usuarios = response.usuarios || [];
         this.pagination = {

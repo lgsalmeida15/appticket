@@ -29,11 +29,16 @@ export const useChamadosStore = defineStore('chamados', {
      * Listar chamados com filtros e paginação
      */
     async listarChamados(params = {}) {
-      this.loading = true;
+      const isBackground = params.background || false;
+      if (!isBackground) {
+        this.loading = true;
+      }
       this.error = null;
 
       try {
-        const response = await chamadoService.listar(params);
+        // Remover background do params antes de enviar para o service
+        const { background, ...serviceParams } = params;
+        const response = await chamadoService.listar(serviceParams);
         
         this.chamados = response.chamados || [];
         this.pagination = {
@@ -48,7 +53,9 @@ export const useChamadosStore = defineStore('chamados', {
         this.error = error.response?.data?.error?.message || error.message || 'Erro ao listar chamados';
         throw error;
       } finally {
-        this.loading = false;
+        if (!isBackground) {
+          this.loading = false;
+        }
       }
     },
 
@@ -264,8 +271,11 @@ export const useChamadosStore = defineStore('chamados', {
     /**
      * Buscar estatísticas
      */
-    async buscarEstatisticas() {
-      this.loading = true;
+    async buscarEstatisticas(params = {}) {
+      const isBackground = params.background || false;
+      if (!isBackground) {
+        this.loading = true;
+      }
       this.error = null;
 
       try {
@@ -276,7 +286,9 @@ export const useChamadosStore = defineStore('chamados', {
         this.error = error.response?.data?.error?.message || error.message || 'Erro ao buscar estatísticas';
         throw error;
       } finally {
-        this.loading = false;
+        if (!isBackground) {
+          this.loading = false;
+        }
       }
     },
 
