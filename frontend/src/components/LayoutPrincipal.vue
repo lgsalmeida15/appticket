@@ -1,22 +1,30 @@
 <template>
   <div class="app-layout">
     <!-- Sidebar Fixa -->
-    <aside :class="['app-sidebar', { 'sidebar-collapsed': isCollapsed }]">
+    <aside :class="['app-sidebar', { 'sidebar-collapsed': isCollapsed, 'mobile-open': isMobileMenuOpen }]">
       <!-- Logo / Brand -->
       <div class="sidebar-header">
-        <router-link to="/chamados" class="sidebar-brand">
+        <router-link to="/chamados" class="sidebar-brand" @click="isMobileMenuOpen = false">
           <div class="brand-logo">
             <img src="@/assets/minilogo.png" alt="AppTicket" class="brand-image" />
           </div>
-          <span v-if="!isCollapsed" class="brand-text">AppTicket</span>
+          <span v-if="!isCollapsed || isMobileMenuOpen" class="brand-text">AppTicket</span>
         </router-link>
         
         <button 
           @click="toggleSidebar" 
-          class="sidebar-toggle"
+          class="sidebar-toggle d-none d-lg-flex"
           :title="isCollapsed ? 'Expandir' : 'Recolher'"
         >
           <i :class="isCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"></i>
+        </button>
+
+        <button 
+          @click="isMobileMenuOpen = false" 
+          class="sidebar-close d-lg-none"
+          title="Fechar menu"
+        >
+          <i class="bi bi-x-lg"></i>
         </button>
       </div>
 
@@ -24,56 +32,56 @@
       <nav class="sidebar-nav">
         <ul class="nav-list">
           <li class="nav-item">
-            <router-link to="/chamados" class="nav-link">
+            <router-link to="/chamados" class="nav-link" @click="isMobileMenuOpen = false">
               <i class="bi bi-list-task"></i>
-              <span v-if="!isCollapsed" class="nav-text">Chamados</span>
+              <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Chamados</span>
             </router-link>
           </li>
           
           <li class="nav-item">
-            <router-link to="/chamados/consultas" class="nav-link">
+            <router-link to="/chamados/consultas" class="nav-link" @click="isMobileMenuOpen = false">
               <i class="bi bi-search"></i>
-              <span v-if="!isCollapsed" class="nav-text">Consultas</span>
+              <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Consultas</span>
             </router-link>
           </li>
           
           <li class="nav-item">
-            <router-link to="/dashboard" class="nav-link">
+            <router-link to="/dashboard" class="nav-link" @click="isMobileMenuOpen = false">
               <i class="bi bi-graph-up"></i>
-              <span v-if="!isCollapsed" class="nav-text">Dashboard</span>
+              <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Dashboard</span>
             </router-link>
           </li>
         </ul>
 
         <!-- Admin Menu -->
         <div v-if="authStore.isAdmin" class="nav-section">
-          <div v-if="!isCollapsed" class="nav-section-title">Gerenciamento</div>
+          <div v-if="!isCollapsed || isMobileMenuOpen" class="nav-section-title">Gerenciamento</div>
           <ul class="nav-list">
             <li class="nav-item">
-              <router-link to="/usuarios" class="nav-link">
+              <router-link to="/usuarios" class="nav-link" @click="isMobileMenuOpen = false">
                 <i class="bi bi-people"></i>
-                <span v-if="!isCollapsed" class="nav-text">Usuários</span>
+                <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Usuários</span>
               </router-link>
             </li>
             
             <li class="nav-item">
-              <router-link to="/grupos" class="nav-link">
+              <router-link to="/grupos" class="nav-link" @click="isMobileMenuOpen = false">
                 <i class="bi bi-diagram-3"></i>
-                <span v-if="!isCollapsed" class="nav-text">Grupos</span>
+                <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Grupos</span>
               </router-link>
             </li>
             
             <li class="nav-item">
-              <router-link to="/auditoria" class="nav-link">
+              <router-link to="/auditoria" class="nav-link" @click="isMobileMenuOpen = false">
                 <i class="bi bi-journal-text"></i>
-                <span v-if="!isCollapsed" class="nav-text">Auditoria</span>
+                <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Auditoria</span>
               </router-link>
             </li>
             
             <li class="nav-item">
-              <router-link to="/solution-categories" class="nav-link">
+              <router-link to="/solution-categories" class="nav-link" @click="isMobileMenuOpen = false">
                 <i class="bi bi-tags"></i>
-                <span v-if="!isCollapsed" class="nav-text">Categorias</span>
+                <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Categorias</span>
               </router-link>
             </li>
           </ul>
@@ -87,11 +95,11 @@
             <div class="user-avatar">
               <i class="bi bi-person-circle"></i>
             </div>
-            <div v-if="!isCollapsed" class="user-info">
+            <div v-if="!isCollapsed || isMobileMenuOpen" class="user-info">
               <div class="user-name">{{ authStore.currentUser?.nome || 'Usuário' }}</div>
               <div class="user-role">{{ tipoUsuarioLabel }}</div>
             </div>
-            <i v-if="!isCollapsed" class="bi bi-three-dots"></i>
+            <i v-if="!isCollapsed || isMobileMenuOpen" class="bi bi-three-dots"></i>
           </div>
 
           <!-- User Dropdown Menu -->
@@ -120,6 +128,13 @@
       </div>
     </aside>
 
+    <!-- Overlay Mobile -->
+    <div 
+      v-if="isMobileMenuOpen" 
+      class="sidebar-overlay" 
+      @click="isMobileMenuOpen = false"
+    ></div>
+
     <!-- Main Content Area -->
     <div class="app-main">
       <!-- Header Superior -->
@@ -127,6 +142,13 @@
         <div class="header-content">
           <!-- Breadcrumb ou Título da página -->
           <div class="header-left">
+            <button 
+              @click="isMobileMenuOpen = true" 
+              class="mobile-menu-toggle d-lg-none me-3"
+              title="Abrir menu"
+            >
+              <i class="bi bi-list"></i>
+            </button>
             <h1 class="page-title">{{ pageTitle }}</h1>
           </div>
 
@@ -156,6 +178,7 @@ const authStore = useAuthStore();
 
 // Estado da sidebar
 const isCollapsed = ref(false);
+const isMobileMenuOpen = ref(false);
 const isUserMenuOpen = ref(false);
 
 // Refs para o menu do usuário
@@ -674,12 +697,58 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .app-sidebar {
     transform: translateX(-100%);
+    width: 280px !important;
+  }
+  
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .app-sidebar.mobile-open .nav-link {
+    justify-content: flex-start;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .app-sidebar.mobile-open .user-dropdown {
+    justify-content: flex-start;
   }
   
   .app-main {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
   
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-bg-overlay);
+    backdrop-filter: var(--backdrop-blur);
+    z-index: calc(var(--z-fixed) - 1);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .mobile-menu-toggle {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .sidebar-close {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+  }
+
   .page-title {
     font-size: var(--font-size-lg);
   }
@@ -687,5 +756,16 @@ onUnmounted(() => {
   .app-content {
     padding: var(--space-4);
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.d-none { display: none !important; }
+@media (min-width: 992px) {
+  .d-lg-none { display: none !important; }
+  .d-lg-flex { display: flex !important; }
 }
 </style>
