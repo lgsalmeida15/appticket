@@ -161,11 +161,15 @@
             </button>
           </li>
           <li
-            v-for="page in gruposStore.pagination.totalPages"
+            v-for="page in paginationPages"
             :key="page"
             :class="{ active: page === gruposStore.pagination.page }"
           >
-            <button class="page-number" @click="mudarPagina(page)">
+            <button 
+              class="page-number" 
+              @click="mudarPagina(page)"
+              :disabled="page === '...'"
+            >
               {{ page }}
             </button>
           </li>
@@ -288,7 +292,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import { useGruposStore } from '@/stores/grupos';
 import LayoutPrincipal from '@/components/LayoutPrincipal.vue';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
@@ -303,7 +307,7 @@ const filtros = ref({
   search: '',
   ativo: '',
   page: 1,
-  limit: 10
+  limit: 100
 });
 
 const formulario = ref({
@@ -336,7 +340,7 @@ const limparFiltros = async () => {
     search: '',
     ativo: '',
     page: 1,
-    limit: 10
+    limit: 100
   };
   await gruposStore.listarGrupos(filtros.value);
 };
@@ -435,6 +439,29 @@ const executarDeletarGrupo = async () => {
 const verDetalhes = (grupo) => {
   alert(`Detalhes do grupo:\n\nID: ${grupo.id}\nNome: ${grupo.nome}\nMembros: ${grupo.usuarios?.length || 0}\nAtivo: ${grupo.ativo ? 'Sim' : 'Não'}`);
 };
+
+// Gerar páginas para paginação (com ellipsis)
+const paginationPages = computed(() => {
+  const total = gruposStore.pagination.totalPages;
+  const current = gruposStore.pagination.page;
+  const pages = [];
+  
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, '...', total);
+    } else if (current >= total - 2) {
+      pages.push(1, '...', total - 3, total - 2, total - 1, total);
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total);
+    }
+  }
+  
+  return pages;
+});
 </script>
 
 <style scoped>
