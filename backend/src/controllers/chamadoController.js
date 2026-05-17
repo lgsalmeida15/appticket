@@ -56,7 +56,7 @@ export const criarChamado = async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       fileService.validarArquivos(req.files, {
         maxSize: 10 * 1024 * 1024, // 10MB
-        maxFiles: 5
+        maxFiles: 10
       });
     }
 
@@ -168,7 +168,7 @@ export const adicionarComentario = async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       fileService.validarArquivos(req.files, {
         maxSize: 10 * 1024 * 1024, // 10MB
-        maxFiles: 5
+        maxFiles: 10
       });
     }
 

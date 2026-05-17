@@ -110,7 +110,7 @@ class FileService {
   validarArquivos(files, options = {}) {
     const {
       maxSize = 10 * 1024 * 1024,
-      maxFiles = 5,
+      maxFiles = 10,
       allowedTypes = null
     } = options;
 

@@ -32,7 +32,7 @@
           </a>
         </p>
         <small class="text-muted">
-          Máximo 5 arquivos, 10MB cada.
+          Máximo 10 arquivos, 10MB cada.
           <br>
           Formatos: Imagens, PDF, Word, Excel, ZIP
         </small>
@@ -98,7 +98,7 @@ const props = defineProps({
   },
   maxFiles: {
     type: Number,
-    default: 5
+    default: 10
   },
   maxFileSize: {
     type: Number,
