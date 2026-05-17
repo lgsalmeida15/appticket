@@ -72,6 +72,7 @@
         :pagination="pagination"
         @visualizar="visualizarChamado"
         @mudar-pagina="mudarPagina"
+        @refresh="buscarChamados({ background: true })"
       />
 
       <!-- Kanban de Chamados -->
@@ -82,6 +83,7 @@
         :group-by="kanbanGroupBy"
         :grupos="grupos"
         @visualizar="visualizarChamado"
+        @refresh="buscarChamados({ background: true })"
       />
     </div>
   </layout-principal>

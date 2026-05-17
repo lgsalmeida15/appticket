@@ -68,11 +68,38 @@
 
               <!-- Card Footer -->
               <div class="card-footer-kanban">
-                <div class="card-user">
-                  <div class="user-avatar-small" :title="chamado.responsavel?.nome || 'Sem responsável'">
-                    <i class="bi bi-person-fill"></i>
+                <div class="footer-main">
+                  <div class="card-user">
+                    <div class="user-avatar-small" :title="chamado.responsavel?.nome || 'Sem responsável'">
+                      <i class="bi bi-person-fill"></i>
+                    </div>
+                    <span class="user-name-small">{{ chamado.responsavel?.nome || 'Não atribuído' }}</span>
                   </div>
-                  <span class="user-name-small">{{ chamado.responsavel?.nome || 'Não atribuído' }}</span>
+
+                  <!-- Botões de Ação Rápida -->
+                  <div v-if="podeExecutarAcao(chamado)" class="quick-actions">
+                    <button 
+                      v-if="chamado.status === 'novo' || chamado.status === 'aguardando'"
+                      class="btn-quick play"
+                      @click.stop="handleQuickAction(chamado.id, 'play')"
+                      title="Iniciar Atendimento"
+                      :disabled="loadingAction === chamado.id"
+                    >
+                      <i v-if="loadingAction === chamado.id" class="spinner-border spinner-border-sm"></i>
+                      <i v-else class="bi bi-play-circle-fill"></i>
+                    </button>
+                    
+                    <button 
+                      v-if="chamado.status === 'em_andamento'"
+                      class="btn-quick pause"
+                      @click.stop="handleQuickAction(chamado.id, 'pause')"
+                      title="Pausar Atendimento"
+                      :disabled="loadingAction === chamado.id"
+                    >
+                      <i v-if="loadingAction === chamado.id" class="spinner-border spinner-border-sm"></i>
+                      <i v-else class="bi bi-pause-circle-fill"></i>
+                    </button>
+                  </div>
                 </div>
                 
                 <div v-if="chamado.grupo && groupBy !== 'grupo'" class="card-group">
@@ -102,9 +129,13 @@
 <script setup>
 import { ref, computed, watch, shallowRef } from 'vue';
 import { useChamados } from '@/composables/useChamados';
+import { useChamadosStore } from '@/stores/chamados';
+import { useAuthStore } from '@/stores/auth';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 const { formatarTipo, formatarStatus, formatarPrioridade } = useChamados();
+const chamadosStore = useChamadosStore();
+const authStore = useAuthStore();
 
 const props = defineProps({
   chamados: {
@@ -126,7 +157,26 @@ const props = defineProps({
   }
 });
 
-defineEmits(['visualizar']);
+const emit = defineEmits(['visualizar', 'refresh']);
+
+const loadingAction = ref(null);
+
+const podeExecutarAcao = (chamado) => {
+  return authStore.isAdmin;
+};
+
+const handleQuickAction = async (chamadoId, acao) => {
+  try {
+    loadingAction.value = chamadoId;
+    await chamadosStore.alternarAtendimento(chamadoId, acao);
+    // Emitir evento de refresh para atualizar o quadro silenciosamente
+    emit('refresh');
+  } catch (error) {
+    console.error('Erro na ação rápida:', error);
+  } finally {
+    loadingAction.value = null;
+  }
+};
 
 // Cache interno para evitar flicker
 const internalChamados = shallowRef([]);
@@ -489,10 +539,60 @@ const isSlaEstourado = (prazo) => {
   border-top: 1px solid var(--color-border-light);
 }
 
+.footer-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .card-user {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0; /* Permite encolher se necessário */
+}
+
+.quick-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-quick {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+}
+
+.btn-quick:hover:not(:disabled) {
+  transform: scale(1.2);
+}
+
+.btn-quick:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-quick.play {
+  color: var(--color-success-500);
+}
+
+.btn-quick.pause {
+  color: var(--color-warning-500);
+}
+
+.btn-quick i {
+  font-size: 1.4rem;
+}
+
+.btn-quick .spinner-border {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .user-avatar-small {

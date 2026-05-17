@@ -10,7 +10,8 @@ const atualizarChamadoSchema = z.object({
   status: z.enum(['novo', 'em_andamento', 'aguardando', 'cancelado']).optional(),
   atribuido_a: z.preprocess(
     (val) => {
-      if (val === '' || val === null || val === undefined) return null;
+      if (val === undefined) return undefined;
+      if (val === '' || val === null) return null;
       const num = Number(val);
       return isNaN(num) ? null : num;
     },
@@ -18,6 +19,7 @@ const atualizarChamadoSchema = z.object({
   ),
   prazo: z.preprocess(
     (val) => {
+      if (val === undefined) return undefined;
       const parsed = parseDateTimeLocal(val);
       if (parsed === undefined) return null;
       return parsed;
@@ -28,7 +30,8 @@ const atualizarChamadoSchema = z.object({
   campos_customizados: z.record(z.any()).optional(),
   grupo_id: z.preprocess(
     (val) => {
-      if (val === '' || val === null || val === undefined) return undefined;
+      if (val === undefined) return undefined;
+      if (val === '' || val === null) return undefined;
       const num = Number(val);
       return isNaN(num) ? undefined : num;
     },
@@ -36,7 +39,8 @@ const atualizarChamadoSchema = z.object({
   ),
   grupo_executor_id: z.preprocess(
     (val) => {
-      if (val === '' || val === null || val === undefined) return null;
+      if (val === undefined) return undefined;
+      if (val === '' || val === null) return null;
       const num = Number(val);
       return isNaN(num) ? null : num;
     },

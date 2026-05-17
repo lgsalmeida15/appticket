@@ -57,10 +57,38 @@
 
         <!-- Footer -->
         <div class="chamado-footer">
-          <span :class="getBadgeStatus(chamado.status)" class="status-badge">
-            <i :class="getStatusIcon(chamado.status)"></i>
-            {{ formatarStatus(chamado.status) }}
-          </span>
+          <div class="footer-left">
+            <span :class="getBadgeStatus(chamado.status)" class="status-badge">
+              <i :class="getStatusIcon(chamado.status)"></i>
+              {{ formatarStatus(chamado.status) }}
+            </span>
+
+            <!-- Botões de Ação Rápida -->
+            <div v-if="podeExecutarAcao(chamado)" class="quick-actions">
+              <button 
+                v-if="chamado.status === 'novo' || chamado.status === 'aguardando'"
+                class="btn-quick play"
+                @click.stop="handleQuickAction(chamado.id, 'play')"
+                title="Iniciar Atendimento"
+                :disabled="loadingAction === chamado.id"
+              >
+                <i v-if="loadingAction === chamado.id" class="spinner-border spinner-border-sm"></i>
+                <i v-else class="bi bi-play-circle-fill"></i>
+              </button>
+              
+              <button 
+                v-if="chamado.status === 'em_andamento'"
+                class="btn-quick pause"
+                @click.stop="handleQuickAction(chamado.id, 'pause')"
+                title="Pausar Atendimento"
+                :disabled="loadingAction === chamado.id"
+              >
+                <i v-if="loadingAction === chamado.id" class="spinner-border spinner-border-sm"></i>
+                <i v-else class="bi bi-pause-circle-fill"></i>
+              </button>
+            </div>
+          </div>
+
           <button 
             class="btn-view"
             @click.stop="$emit('visualizar', chamado)"
@@ -116,8 +144,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useChamados } from '@/composables/useChamados';
+import { useChamadosStore } from '@/stores/chamados';
+import { useAuthStore } from '@/stores/auth';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 
@@ -130,6 +160,9 @@ const {
   getBadgePrioridade, 
   getBadgeTipo 
 } = useChamados();
+
+const chamadosStore = useChamadosStore();
+const authStore = useAuthStore();
 
 const props = defineProps({
   chamados: {
@@ -151,7 +184,26 @@ const props = defineProps({
   }
 });
 
-defineEmits(['visualizar', 'mudar-pagina']);
+const emit = defineEmits(['visualizar', 'mudar-pagina', 'refresh']);
+
+const loadingAction = ref(null);
+
+const podeExecutarAcao = (chamado) => {
+  return authStore.isAdmin;
+};
+
+const handleQuickAction = async (chamadoId, acao) => {
+  try {
+    loadingAction.value = chamadoId;
+    await chamadosStore.alternarAtendimento(chamadoId, acao);
+    // Emitir evento de refresh para atualizar a lista silenciosamente
+    emit('refresh');
+  } catch (error) {
+    console.error('Erro na ação rápida:', error);
+  } finally {
+    loadingAction.value = null;
+  }
+};
 
 // Ícones para cada status
 const getStatusIcon = (status) => {
@@ -302,6 +354,55 @@ const paginationPages = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.quick-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn-quick {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+}
+
+.btn-quick:hover:not(:disabled) {
+  transform: scale(1.2);
+}
+
+.btn-quick:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-quick.play {
+  color: var(--color-success-500);
+}
+
+.btn-quick.pause {
+  color: var(--color-warning-500);
+}
+
+.btn-quick i {
+  font-size: 1.6rem;
+}
+
+.btn-quick .spinner-border {
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 .status-badge {

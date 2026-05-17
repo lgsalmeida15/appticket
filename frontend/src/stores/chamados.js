@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import chamadoService from '../services/chamadoService.js';
+import { useAuthStore } from './auth';
 
 export const useChamadosStore = defineStore('chamados', {
   state: () => ({
@@ -432,6 +433,56 @@ export const useChamadosStore = defineStore('chamados', {
     clearChamado() {
       this.chamado = null;
       this.comentarios = [];
+    },
+
+    /**
+     * Ação rápida para iniciar/pausar atendimento
+     */
+    async alternarAtendimento(chamadoId, acao) {
+      const authStore = useAuthStore();
+      this.error = null;
+      try {
+        if (acao === 'play') {
+          // 1. Iniciar contagem de tempo
+          await chamadoService.iniciarContagem(chamadoId);
+          
+          // 2. Atualizar status para em_andamento e atribuir ao usuário logado
+          const response = await chamadoService.atualizar(chamadoId, { 
+            status: 'em_andamento',
+            atribuido_a: authStore.user.id
+          });
+          
+          const chamadoAtualizado = response.chamado || response;
+          
+          // Atualizar na lista local
+          const index = this.chamados.findIndex(c => c.id === chamadoId);
+          if (index !== -1) {
+            this.chamados[index] = chamadoAtualizado;
+          }
+          return chamadoAtualizado;
+
+        } else if (acao === 'pause') {
+          // 1. Parar contagem de tempo
+          await chamadoService.pararContagem(chamadoId);
+          
+          // 2. Atualizar status para aguardando (preservando o responsável atual)
+          const response = await chamadoService.atualizar(chamadoId, { 
+            status: 'aguardando' 
+          });
+          
+          const chamadoAtualizado = response.chamado || response;
+          
+          // Atualizar na lista local
+          const index = this.chamados.findIndex(c => c.id === chamadoId);
+          if (index !== -1) {
+            this.chamados[index] = chamadoAtualizado;
+          }
+          return chamadoAtualizado;
+        }
+      } catch (error) {
+        this.error = error.response?.data?.error?.message || error.message || 'Erro ao alternar atendimento';
+        throw error;
+      }
     }
   }
 });
