@@ -86,11 +86,11 @@ class ChamadoFechamentoService {
 
     // Validar data de resolução
     const dataResolucao = new Date(data_hora_resolucao);
-    const dataAbertura = new Date(chamado.data_abertura);
+    const dataInicio = new Date(chamado.data_hora_inicio);
     const agora = new Date();
 
-    if (dataResolucao < dataAbertura) {
-      throw new AppError('A data de resolução não pode ser anterior à data de abertura do chamado', 400);
+    if (dataResolucao < dataInicio) {
+      throw new AppError('A data de resolução não pode ser anterior à data de início do chamado', 400);
     }
 
     if (dataResolucao > agora) {
