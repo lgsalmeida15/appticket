@@ -103,7 +103,7 @@
                   </h5>
                 </div>
                 <div class="card-body">
-                  <p class="mb-0">{{ chamado.descricao }}</p>
+                  <p class="mb-0 text-preserve-format">{{ chamado.descricao }}</p>
                   
                   <!-- Anexos do Chamado -->
                   <div v-if="chamado.campos_customizados?.anexos?.length" class="mt-3">

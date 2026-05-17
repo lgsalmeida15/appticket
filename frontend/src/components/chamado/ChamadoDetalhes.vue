@@ -13,9 +13,9 @@
           <div class="row">
             <div class="col-md-8">
               <!-- Descrição -->
-              <div class="mb-4">
+                <div class="mb-4">
                 <h6 class="text-muted mb-2">Descrição</h6>
-                <p class="info-box p-3 rounded">{{ chamado.descricao }}</p>
+                <p class="info-box p-3 rounded text-preserve-format">{{ chamado.descricao }}</p>
                 
                 <!-- Anexos do Chamado -->
                 <div v-if="chamado.campos_customizados?.anexos?.length" class="mt-3">

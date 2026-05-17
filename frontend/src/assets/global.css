@@ -79,6 +79,19 @@
   color: var(--color-text-primary);
 }
 
+/* Preservação de formatação de texto (quebras de linha) */
+.text-preserve-format {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Estilo para textareas que expandem conforme o conteúdo */
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
 /* ========================================
    RESET E BASE
    ======================================== */

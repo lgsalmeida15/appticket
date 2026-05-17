@@ -24,7 +24,7 @@
             </div>
             <small class="text-muted">{{ formatarData(comentario.data_hora) }}</small>
           </div>
-          <p class="mb-0">{{ comentario.texto }}</p>
+          <p class="mb-0 text-preserve-format">{{ comentario.texto }}</p>
           
           <!-- Anexos do Comentário -->
           <div v-if="comentario.anexos?.length" class="mt-2">
