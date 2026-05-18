@@ -71,7 +71,7 @@ export const upload = multer({
 });
 
 // Middleware para múltiplos arquivos
-export const uploadMultiple = upload.array('arquivos', 5); // Máximo 5 arquivos
+export const uploadMultiple = upload.array('arquivos', 10); // Máximo 10 arquivos
 
 // Middleware para arquivo único
 export const uploadSingle = upload.single('arquivo');
