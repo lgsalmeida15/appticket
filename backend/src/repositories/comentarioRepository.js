@@ -41,7 +41,8 @@ class ComentarioRepository {
   }
 
   /**
-   * Listar comentários de um chamado
+   * Listar comentários de um chamado (só o mural do chamado "raiz" — exclui
+   * por padrão os comentários que pertencem a uma tarefa específica)
    */
   async listarPorChamado(chamadoId, opcoes = {}) {
     const {
@@ -49,12 +50,39 @@ class ComentarioRepository {
       apenasInternos = false
     } = opcoes;
 
-    const where = { chamado_id: chamadoId };
-    
+    const where = { chamado_id: chamadoId, tarefa_id: null };
+
     if (!incluirInternos) {
       where.interno = false;
     }
-    
+
+    if (apenasInternos) {
+      where.interno = true;
+    }
+
+    return await Comentario.findAll({
+      where,
+      include: [{
+        model: Usuario,
+        as: 'usuario',
+        attributes: ['id', 'nome', 'email']
+      }],
+      order: [['data_hora', 'ASC']]
+    });
+  }
+
+  /**
+   * Listar comentários de uma tarefa específica
+   */
+  async listarPorTarefa(tarefaId, opcoes = {}) {
+    const { incluirInternos = true, apenasInternos = false } = opcoes;
+
+    const where = { tarefa_id: tarefaId };
+
+    if (!incluirInternos) {
+      where.interno = false;
+    }
+
     if (apenasInternos) {
       where.interno = true;
     }

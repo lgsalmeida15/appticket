@@ -5,6 +5,7 @@ import permissionService from './permissionService.js';
 import historicoService from './historicoService.js';
 import auditoriaService from './auditoriaService.js';
 import timeTrackingService from './timeTrackingService.js';
+import chamadoTarefaService from './chamadoTarefaService.js';
 import eventEmitter from '../utils/EventEmitter.js';
 import logger from '../utils/logger.js';
 import { validarDataHoraInicio } from '../utils/validations.js';
@@ -71,7 +72,10 @@ class ChamadoService {
     // Verificar permissão para ver o chamado
     await permissionService.verificarPermissaoVisualizacaoChamado(chamado, usuarioLogado);
 
-    return chamado.toJSON ? chamado.toJSON() : chamado;
+    const chamadoJSON = chamado.toJSON ? chamado.toJSON() : chamado;
+    chamadoJSON.tem_tarefas_ativas = await chamadoTarefaService.temTarefaAtiva(chamadoId);
+
+    return chamadoJSON;
   }
 
   /**

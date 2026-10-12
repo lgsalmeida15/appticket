@@ -1,5 +1,6 @@
 import timeTrackingRepository from '../repositories/timeTrackingRepository.js';
 import chamadoRepository from '../repositories/chamadoRepository.js';
+import chamadoTarefaRepository from '../repositories/chamadoTarefaRepository.js';
 import historicoService from './historicoService.js';
 import logger from '../utils/logger.js';
 
@@ -9,9 +10,14 @@ import logger from '../utils/logger.js';
  */
 class TimeTrackingService {
   /**
-   * Iniciar contagem de tempo
+   * Iniciar contagem de tempo. Se `tarefaId` for informado, a contagem fica
+   * vinculada àquela tarefa (chamado_id continua sempre preenchido também).
+   * Se o chamado já tiver alguma tarefa ativa, não é mais permitido iniciar
+   * contagem "solta" direto no chamado — tem que ser através de uma tarefa
+   * (mesmo padrão de ferramentas de mercado: lançar tempo contra o item de
+   * trabalho mais granular quando ele existe).
    */
-  async iniciarContagem(chamadoId, usuarioId, descricao = null) {
+  async iniciarContagem(chamadoId, usuarioId, descricao = null, tarefaId = null) {
     // Verificar se chamado existe
     const chamado = await chamadoRepository.buscarPorId(chamadoId);
     if (!chamado) {
@@ -21,7 +27,33 @@ class TimeTrackingService {
       throw error;
     }
 
+    let tarefa = null;
+    if (tarefaId) {
+      tarefa = await chamadoTarefaRepository.buscarPorIdEChamado(tarefaId, chamadoId);
+      if (!tarefa) {
+        const error = new Error('Tarefa não encontrada neste chamado');
+        error.statusCode = 404;
+        error.code = 'TAREFA_NOT_FOUND';
+        throw error;
+      }
+      if (tarefa.status === 'cancelada') {
+        const error = new Error('Não é possível cronometrar uma tarefa cancelada');
+        error.statusCode = 400;
+        error.code = 'TAREFA_CANCELADA';
+        throw error;
+      }
+    } else {
+      const temTarefaAtiva = await chamadoTarefaRepository.contarAtivasPorChamado(chamadoId) > 0;
+      if (temTarefaAtiva) {
+        const error = new Error('Este chamado tem tarefas ativas — cronometre pelas tarefas em vez do chamado diretamente');
+        error.statusCode = 400;
+        error.code = 'TASKS_REQUIRE_TASK_LEVEL_TRACKING';
+        throw error;
+      }
+    }
+
     // Verificar se já existe contagem ativa para este usuário neste chamado
+    // (independente de ser direto no chamado ou em alguma de suas tarefas)
     const contagemAtiva = await timeTrackingRepository.buscarAtivoPorChamadoEUsuario(chamadoId, usuarioId);
     if (contagemAtiva) {
       const error = new Error('Já existe uma contagem ativa para este chamado');
@@ -44,6 +76,7 @@ class TimeTrackingService {
     // Criar nova contagem
     const registro = await timeTrackingRepository.criar({
       chamado_id: chamadoId,
+      tarefa_id: tarefaId || null,
       usuario_id: usuarioId,
       inicio: new Date(),
       fim: null,
@@ -55,14 +88,17 @@ class TimeTrackingService {
       chamado_id: chamadoId,
       usuario_id: usuarioId,
       acao: 'edicao',
-      descricao: `Contagem de tempo iniciada`,
+      descricao: tarefaId
+        ? `Contagem de tempo iniciada na tarefa "${tarefa.titulo}"`
+        : 'Contagem de tempo iniciada',
       dados_anteriores: null,
-      dados_novos: { time_tracking_id: registro.id }
+      dados_novos: { time_tracking_id: registro.id, tarefa_id: tarefaId || null }
     });
 
     logger.info('Contagem de tempo iniciada', {
       registroId: registro.id,
       chamadoId,
+      tarefaId,
       usuarioId
     });
 
@@ -75,16 +111,25 @@ class TimeTrackingService {
   }
 
   /**
-   * Parar contagem de tempo
+   * Parar contagem de tempo. `tarefaId` opcional: se informado, valida que a
+   * contagem ativa do usuário pertence àquela tarefa (evita pausar a tarefa
+   * errada quando há mais de um timer disponível na tela).
    */
-  async pararContagem(chamadoId, usuarioId) {
+  async pararContagem(chamadoId, usuarioId, tarefaId = null) {
     // Buscar contagem ativa
     const contagem = await timeTrackingRepository.buscarAtivoPorChamadoEUsuario(chamadoId, usuarioId);
-    
+
     if (!contagem) {
       const error = new Error('Não há contagem ativa para este chamado');
       error.statusCode = 404;
       error.code = 'NO_ACTIVE_TRACKING';
+      throw error;
+    }
+
+    if (tarefaId && contagem.tarefa_id !== tarefaId) {
+      const error = new Error('A contagem ativa pertence a outra tarefa/chamado');
+      error.statusCode = 400;
+      error.code = 'TRACKING_TAREFA_MISMATCH';
       throw error;
     }
 
@@ -160,10 +205,48 @@ class TimeTrackingService {
   }
 
   /**
-   * Buscar totais de tempo (com sessão ativa incluída) para vários chamados
+   * Buscar totais de tempo (com sessão ativa incluída) para vários chamados,
+   * já incluindo se cada um tem tarefa ativa (usado para decidir se o
+   * play/pause direto do chamado deve ficar disponível na UI).
    */
   async buscarTotaisPorChamados(chamadoIds) {
-    return await timeTrackingRepository.calcularTotaisPorChamados(chamadoIds);
+    const totais = await timeTrackingRepository.calcularTotaisPorChamados(chamadoIds);
+    const tarefasAtivas = await chamadoTarefaRepository.contarAtivasPorChamados(chamadoIds);
+
+    for (const id of chamadoIds) {
+      if (totais[id]) {
+        totais[id].tem_tarefas_ativas = (tarefasAtivas[id] || 0) > 0;
+      }
+    }
+
+    return totais;
+  }
+
+  /**
+   * Buscar histórico de time tracking de uma tarefa específica
+   */
+  async buscarHistoricoPorTarefa(chamadoId, tarefaId) {
+    const tarefa = await chamadoTarefaRepository.buscarPorIdEChamado(tarefaId, chamadoId);
+    if (!tarefa) {
+      const error = new Error('Tarefa não encontrada neste chamado');
+      error.statusCode = 404;
+      error.code = 'TAREFA_NOT_FOUND';
+      throw error;
+    }
+
+    const registros = await timeTrackingRepository.buscarTodosPorTarefa(tarefaId);
+    const totalMinutos = await timeTrackingRepository.calcularTotalPorTarefa(tarefaId);
+    const comAtivo = await timeTrackingRepository.calcularTotalComAtivoPorTarefa(tarefaId);
+
+    return {
+      historico: registros.map((r) => (r.toJSON ? r.toJSON() : r)),
+      total_minutos: totalMinutos,
+      total_horas: (totalMinutos / 60).toFixed(2),
+      total_minutos_ao_vivo: comAtivo.total_minutos,
+      total_horas_ao_vivo: (comAtivo.total_minutos / 60).toFixed(2),
+      tem_sessao_ativa: comAtivo.tem_sessao_ativa,
+      sessoes_ativas: comAtivo.sessoes_ativas
+    };
   }
 
   /**
@@ -243,8 +326,11 @@ class TimeTrackingService {
       try {
         await this.iniciarContagem(chamadoId, usuarioResponsavelId, 'Iniciado automaticamente por mudança de status');
       } catch (error) {
-        // Já existe contagem ativa para esse usuário neste chamado: não é um erro real aqui
-        if (error.code !== 'TRACKING_ALREADY_ACTIVE') {
+        // Casos esperados, não são erro real aqui:
+        // - já existe contagem ativa para esse usuário neste chamado
+        // - chamado tem tarefas ativas (o trabalho deve ser cronometrado por elas, não direto)
+        const codigosEsperados = ['TRACKING_ALREADY_ACTIVE', 'TASKS_REQUIRE_TASK_LEVEL_TRACKING'];
+        if (!codigosEsperados.includes(error.code)) {
           logger.error('Erro ao iniciar contagem automática por mudança de status', {
             chamadoId,
             usuarioResponsavelId,

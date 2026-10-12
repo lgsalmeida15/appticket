@@ -17,6 +17,17 @@ const TicketTimeTracking = sequelize.define('ticket_time_tracking', {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   },
+  tarefa_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'chamado_tarefa',
+      key: 'id'
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+    comment: 'Preenchido quando a sessão pertence a uma tarefa específica (chamado_id continua sempre preenchido)'
+  },
   usuario_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

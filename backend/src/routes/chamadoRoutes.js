@@ -27,6 +27,20 @@ import {
   preverBackfill,
   executarBackfill
 } from '../controllers/timeTrackingController.js';
+import {
+  listarTarefas,
+  criarTarefa,
+  buscarTarefa,
+  atualizarTarefa,
+  cancelarTarefa,
+  iniciarContagemTarefa,
+  pararContagemTarefa,
+  buscarHistoricoTempoTarefa,
+  listarComentariosTarefa,
+  adicionarComentarioTarefa
+} from '../controllers/chamadoTarefaController.js';
+import { criarTarefaValidator } from '../validators/chamadoTarefa/criarTarefaValidator.js';
+import { atualizarTarefaValidator } from '../validators/chamadoTarefa/atualizarTarefaValidator.js';
 import { autenticar, verificarGerente, verificarAdmin } from '../middleware/auth.js';
 import { uploadMultiple } from '../config/upload.js';
 import { listarChamadosValidator } from '../validators/chamado/listarChamadosValidator.js';
@@ -391,6 +405,83 @@ router.post('/:id/time/start', idParamValidator, iniciarContagem);
  *         description: Contagem parada
  */
 router.post('/:id/time/stop', idParamValidator, pararContagem);
+
+/**
+ * @swagger
+ * /chamados/{id}/tarefas:
+ *   get:
+ *     summary: Listar tarefas de um chamado
+ *     tags: [Tarefas]
+ *     security:
+ *       - bearerAuth: []
+ *   post:
+ *     summary: Criar tarefa em um chamado
+ *     tags: [Tarefas]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:id/tarefas', idParamValidator, listarTarefas);
+router.post('/:id/tarefas', idParamValidator, criarTarefaValidator, criarTarefa);
+
+/**
+ * @swagger
+ * /chamados/{id}/tarefas/{tarefaId}:
+ *   get:
+ *     summary: Buscar tarefa por ID
+ *     tags: [Tarefas]
+ *   put:
+ *     summary: Atualizar tarefa
+ *     tags: [Tarefas]
+ *   delete:
+ *     summary: Cancelar tarefa (nunca hard delete)
+ *     tags: [Tarefas]
+ */
+// Nota: NÃO usar idParamValidator aqui — ele reescreve req.params só com a
+// chave "id" (zod descarta chaves desconhecidas por padrão), o que apagaria
+// tarefaId. A validação dos dois IDs é feita no próprio controller.
+router.get('/:id/tarefas/:tarefaId', buscarTarefa);
+router.put('/:id/tarefas/:tarefaId', atualizarTarefaValidator, atualizarTarefa);
+router.delete('/:id/tarefas/:tarefaId', cancelarTarefa);
+
+/**
+ * @swagger
+ * /chamados/{id}/tarefas/{tarefaId}/time/start:
+ *   post:
+ *     summary: Iniciar contagem de tempo na tarefa
+ *     tags: [Tarefas]
+ */
+router.post('/:id/tarefas/:tarefaId/time/start', iniciarContagemTarefa);
+
+/**
+ * @swagger
+ * /chamados/{id}/tarefas/{tarefaId}/time/stop:
+ *   post:
+ *     summary: Parar contagem de tempo na tarefa
+ *     tags: [Tarefas]
+ */
+router.post('/:id/tarefas/:tarefaId/time/stop', pararContagemTarefa);
+
+/**
+ * @swagger
+ * /chamados/{id}/tarefas/{tarefaId}/time/history:
+ *   get:
+ *     summary: Histórico de tempo trabalhado na tarefa
+ *     tags: [Tarefas]
+ */
+router.get('/:id/tarefas/:tarefaId/time/history', buscarHistoricoTempoTarefa);
+
+/**
+ * @swagger
+ * /chamados/{id}/tarefas/{tarefaId}/comentarios:
+ *   get:
+ *     summary: Listar comentários da tarefa
+ *     tags: [Tarefas]
+ *   post:
+ *     summary: Adicionar comentário na tarefa
+ *     tags: [Tarefas]
+ */
+router.get('/:id/tarefas/:tarefaId/comentarios', listarComentariosTarefa);
+router.post('/:id/tarefas/:tarefaId/comentarios', adicionarComentarioTarefa);
 
 /**
  * @swagger

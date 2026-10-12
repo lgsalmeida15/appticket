@@ -74,6 +74,59 @@ class ComentarioService {
   }
 
   /**
+   * Adicionar comentário a uma tarefa específica do chamado
+   */
+  async adicionarComentarioTarefa(chamadoId, tarefaId, usuarioId, dados) {
+    const { texto, interno = false, anexos = [] } = dados;
+
+    const chamado = await chamadoRepository.buscarPorId(chamadoId);
+    if (!chamado) {
+      const error = new Error('Chamado não encontrado');
+      error.statusCode = 404;
+      error.code = 'CHAMADO_NOT_FOUND';
+      throw error;
+    }
+
+    if (chamado.status_fechamento === 'fechado') {
+      const error = new Error('Não é possível adicionar comentários em chamados fechados');
+      error.statusCode = 400;
+      error.code = 'CHAMADO_FECHADO';
+      throw error;
+    }
+
+    const comentario = await comentarioRepository.criar({
+      chamado_id: chamadoId,
+      tarefa_id: tarefaId,
+      usuario_id: usuarioId,
+      texto,
+      interno,
+      anexos,
+      data_hora: new Date()
+    });
+
+    logger.info('Comentário de tarefa adicionado', {
+      comentarioId: comentario.id,
+      chamadoId,
+      tarefaId,
+      usuarioId
+    });
+
+    const comentarioCompleto = await comentarioRepository.buscarPorId(comentario.id, {
+      incluirUsuario: true
+    });
+
+    return comentarioCompleto.toJSON ? comentarioCompleto.toJSON() : comentarioCompleto;
+  }
+
+  /**
+   * Listar comentários de uma tarefa específica
+   */
+  async listarPorTarefa(tarefaId, opcoes = {}) {
+    const comentarios = await comentarioRepository.listarPorTarefa(tarefaId, opcoes);
+    return comentarios.map(c => c.toJSON ? c.toJSON() : c);
+  }
+
+  /**
    * Listar comentários de um chamado
    */
   async listarPorChamado(chamadoId, opcoes = {}) {

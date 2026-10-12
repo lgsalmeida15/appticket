@@ -7,6 +7,7 @@ import webhookRoutes from './webhookRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
 import auditoriaRoutes from './auditoriaRoutes.js';
 import solutionCategoryRoutes from './solutionCategoryRoutes.js';
+import calendarioRoutes from './calendarioRoutes.js';
 
 const router = express.Router();
 
@@ -51,6 +52,9 @@ router.use('/auditoria', auditoriaRoutes);
 
 // Rotas de Categorias de Solução
 router.use('/solution-categories', solutionCategoryRoutes);
+
+// Rotas de Calendário/Agenda
+router.use('/calendario', calendarioRoutes);
 
 export default router;
 

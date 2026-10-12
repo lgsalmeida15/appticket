@@ -79,6 +79,70 @@ class TimeTrackingRepository {
   }
 
   /**
+   * Buscar contagem ativa por tarefa e usuário
+   */
+  async buscarAtivoPorTarefaEUsuario(tarefaId, usuarioId) {
+    return await TicketTimeTracking.findOne({
+      where: { tarefa_id: tarefaId, usuario_id: usuarioId, fim: null },
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] }]
+    });
+  }
+
+  /**
+   * Buscar todas as contagens de uma tarefa
+   */
+  async buscarTodosPorTarefa(tarefaId) {
+    return await TicketTimeTracking.findAll({
+      where: { tarefa_id: tarefaId },
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] }],
+      order: [['inicio', 'DESC']]
+    });
+  }
+
+  /**
+   * Calcular total de minutos trabalhados em uma tarefa (apenas finalizadas)
+   */
+  async calcularTotalPorTarefa(tarefaId) {
+    const resultado = await TicketTimeTracking.findAll({
+      where: { tarefa_id: tarefaId, fim: { [Op.ne]: null } },
+      attributes: [[sequelize.fn('SUM', sequelize.col('duracao_minutos')), 'total_minutos']],
+      raw: true
+    });
+    return parseInt(resultado[0]?.total_minutos || 0);
+  }
+
+  /**
+   * Calcular total de minutos de uma tarefa incluindo sessão ativa
+   */
+  async calcularTotalComAtivoPorTarefa(tarefaId) {
+    const totalFinalizado = await this.calcularTotalPorTarefa(tarefaId);
+
+    const sessoesAtivas = await TicketTimeTracking.findAll({
+      where: { tarefa_id: tarefaId, fim: null },
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] }]
+    });
+
+    const agora = Date.now();
+    let totalAoVivo = 0;
+    const sessoesAtivasDetalhe = sessoesAtivas.map((s) => {
+      const minutosDecorridos = Math.floor((agora - new Date(s.inicio).getTime()) / (1000 * 60));
+      totalAoVivo += minutosDecorridos;
+      return {
+        id: s.id,
+        usuario: s.usuario ? s.usuario.toJSON() : null,
+        inicio: s.inicio,
+        minutos_decorridos: minutosDecorridos
+      };
+    });
+
+    return {
+      total_minutos: totalFinalizado + totalAoVivo,
+      tem_sessao_ativa: sessoesAtivas.length > 0,
+      sessoes_ativas: sessoesAtivasDetalhe
+    };
+  }
+
+  /**
    * Buscar todas as contagens de um usuário
    */
   async buscarTodosPorUsuario(usuarioId, opcoes = {}) {

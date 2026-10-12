@@ -10,6 +10,7 @@ import HistoricoAuditoria from './HistoricoAuditoria.js';
 import TicketTimeTracking from './TicketTimeTracking.js';
 import SolutionCategory from './SolutionCategory.js';
 import ChamadoFechamento from './ChamadoFechamento.js';
+import ChamadoTarefa from './ChamadoTarefa.js';
 
 // ============================================
 // RELACIONAMENTOS ENTRE MODELS
@@ -227,6 +228,60 @@ Usuario.hasMany(ChamadoFechamento, {
   as: 'fechamentos_realizados'
 });
 
+// Relacionamento: ChamadoTarefa -> Chamado
+ChamadoTarefa.belongsTo(Chamado, {
+  foreignKey: 'chamado_id',
+  as: 'chamado'
+});
+
+Chamado.hasMany(ChamadoTarefa, {
+  foreignKey: 'chamado_id',
+  as: 'tarefas'
+});
+
+// Relacionamento: ChamadoTarefa -> Usuario (responsável e criador)
+ChamadoTarefa.belongsTo(Usuario, {
+  foreignKey: 'responsavel_id',
+  as: 'responsavel'
+});
+
+Usuario.hasMany(ChamadoTarefa, {
+  foreignKey: 'responsavel_id',
+  as: 'tarefas_atribuidas'
+});
+
+ChamadoTarefa.belongsTo(Usuario, {
+  foreignKey: 'criado_por',
+  as: 'criador'
+});
+
+Usuario.hasMany(ChamadoTarefa, {
+  foreignKey: 'criado_por',
+  as: 'tarefas_criadas'
+});
+
+// Relacionamento: TicketTimeTracking -> ChamadoTarefa (opcional)
+TicketTimeTracking.belongsTo(ChamadoTarefa, {
+  foreignKey: 'tarefa_id',
+  as: 'tarefa'
+});
+
+ChamadoTarefa.hasMany(TicketTimeTracking, {
+  foreignKey: 'tarefa_id',
+  as: 'time_tracking'
+});
+
+// Relacionamento: Comentario -> ChamadoTarefa (opcional)
+Comentario.belongsTo(ChamadoTarefa, {
+  foreignKey: 'tarefa_id',
+  as: 'tarefa'
+});
+
+ChamadoTarefa.hasMany(Comentario, {
+  foreignKey: 'tarefa_id',
+  as: 'comentarios'
+});
+
 // Relacionamento auto-referencial: Chamado -> Chamado (Parent/Child)
 Chamado.belongsTo(Chamado, {
   foreignKey: 'chamado_pai_id',
@@ -254,7 +309,8 @@ export {
   HistoricoAuditoria,
   TicketTimeTracking,
   SolutionCategory,
-  ChamadoFechamento
+  ChamadoFechamento,
+  ChamadoTarefa
 };
 
 export default {
@@ -269,6 +325,7 @@ export default {
   HistoricoAuditoria,
   TicketTimeTracking,
   SolutionCategory,
-  ChamadoFechamento
+  ChamadoFechamento,
+  ChamadoTarefa
 };
 
