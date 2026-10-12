@@ -16,6 +16,7 @@
     "bootstrap-icons": "^1.11.2",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
+    "frappe-gantt": "^1.2.2",
     "marked": "^17.0.1",
     "pinia": "^2.1.7",
     "vee-validate": "^4.15.1",

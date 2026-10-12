@@ -79,7 +79,7 @@
                   <!-- Botões de Ação Rápida -->
                   <div v-if="podeExecutarAcao(chamado)" class="quick-actions">
                     <button 
-                      v-if="chamado.status === 'novo' || chamado.status === 'aguardando'"
+                      v-if="(chamado.status === 'novo' || chamado.status === 'aguardando') && !tempoDoChamado(chamado.id)?.tem_tarefas_ativas"
                       class="btn-quick play"
                       @click.stop="handleQuickAction(chamado.id, 'play')"
                       title="Iniciar Atendimento"
@@ -90,7 +90,7 @@
                     </button>
                     
                     <button 
-                      v-if="chamado.status === 'em_andamento'"
+                      v-if="chamado.status === 'em_andamento' && !tempoDoChamado(chamado.id)?.tem_tarefas_ativas"
                       class="btn-quick pause"
                       @click.stop="handleQuickAction(chamado.id, 'pause')"
                       title="Pausar Atendimento"

@@ -46,6 +46,13 @@
           </li>
           
           <li class="nav-item">
+            <router-link to="/agenda" class="nav-link" @click="isMobileMenuOpen = false">
+              <i class="bi bi-calendar3"></i>
+              <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Agenda</span>
+            </router-link>
+          </li>
+
+          <li class="nav-item">
             <router-link to="/dashboard" class="nav-link" @click="isMobileMenuOpen = false">
               <i class="bi bi-graph-up"></i>
               <span v-if="!isCollapsed || isMobileMenuOpen" class="nav-text">Dashboard</span>
@@ -207,6 +214,7 @@ const tipoUsuarioLabel = computed(() => {
 const pageTitle = computed(() => {
   const titles = {
     '/chamados': 'Chamados',
+    '/agenda': 'Agenda',
     '/dashboard': 'Dashboard',
     '/usuarios': 'Usuários',
     '/grupos': 'Grupos',

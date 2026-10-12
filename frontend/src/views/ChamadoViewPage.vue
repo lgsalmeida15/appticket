@@ -70,9 +70,13 @@
                     </span>
                   </div>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 align-items-center">
+                  <span v-if="chamado.tem_tarefas_ativas" class="small text-muted me-1">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Cronometre pelas tarefas abaixo
+                  </span>
                   <button
-                    v-if="podeExecutarAcaoTempo && (chamado.status === 'novo' || chamado.status === 'aguardando')"
+                    v-if="podeExecutarAcaoTempo && !chamado.tem_tarefas_ativas && (chamado.status === 'novo' || chamado.status === 'aguardando')"
                     class="btn btn-success"
                     @click="handleQuickActionTempo('play')"
                     :disabled="loadingAcaoTempo"
@@ -83,7 +87,7 @@
                     Iniciar
                   </button>
                   <button
-                    v-if="podeExecutarAcaoTempo && chamado.status === 'em_andamento'"
+                    v-if="podeExecutarAcaoTempo && !chamado.tem_tarefas_ativas && chamado.status === 'em_andamento'"
                     class="btn btn-warning"
                     @click="handleQuickActionTempo('pause')"
                     :disabled="loadingAcaoTempo"
@@ -149,6 +153,15 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Tarefas dinâmicas do chamado -->
+              <ChamadoTarefas
+                :chamado-id="chamado.id"
+                :chamado-fechado="chamado.status_fechamento === 'fechado'"
+                :pode-gerenciar="podeAdministrar || podeEditar"
+                :usuarios="usuariosAdmin"
+                @mudou-tarefas-ativas="atualizarTemTarefasAtivas"
+              />
 
               <!-- Relacionamentos (Parent/Child) -->
               <ChamadoRelacionamentos
@@ -287,7 +300,7 @@
           <i class="bi bi-stopwatch me-1"></i>
           <span>{{ formatarMinutos(tempoTrabalho.total_minutos_ao_vivo) }}</span>
           <button
-            v-if="podeExecutarAcaoTempo"
+            v-if="podeExecutarAcaoTempo && !chamado.tem_tarefas_ativas"
             class="btn btn-sm btn-light ms-2"
             @click="handleQuickActionTempo('pause')"
             :disabled="loadingAcaoTempo"
@@ -390,6 +403,7 @@ import ChamadoInformacoesLateral from '@/components/chamado/ChamadoInformacoesLa
 import ChamadoFechamentoInfo from '@/components/chamado/ChamadoFechamentoInfo.vue';
 import ChamadoRelacionamentos from '@/components/chamado/ChamadoRelacionamentos.vue';
 import ChamadoTimeTrackingHistorico from '@/components/chamado/ChamadoTimeTrackingHistorico.vue';
+import ChamadoTarefas from '@/components/chamado/ChamadoTarefas.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -482,6 +496,23 @@ const carregarChamado = async () => {
       || 'Erro ao carregar chamado';
   } finally {
     loading.value = false;
+  }
+};
+
+// Atualiza só a flag de tarefas ativas (sem acionar o loading de página inteira,
+// já que isso é disparado por uma ação dentro do próprio card de Tarefas)
+const atualizarTemTarefasAtivas = async () => {
+  if (!chamado.value) return;
+  try {
+    const chamadoCompleto = await chamadosStore.buscarChamado(chamado.value.id, {
+      incluirComentarios: true,
+      incluirHistorico: true,
+      incluirRelacionamentos: true
+    });
+    chamado.value = { ...chamado.value, tem_tarefas_ativas: chamadoCompleto.tem_tarefas_ativas };
+    await carregarTempoTrabalho();
+  } catch (err) {
+    console.error('Erro ao atualizar status de tarefas ativas (não crítico):', err);
   }
 };
 
