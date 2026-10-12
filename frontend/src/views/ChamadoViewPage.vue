@@ -71,7 +71,29 @@
                   </div>
                 </div>
                 <div class="d-flex gap-2">
-                  <button 
+                  <button
+                    v-if="podeExecutarAcaoTempo && (chamado.status === 'novo' || chamado.status === 'aguardando')"
+                    class="btn btn-success"
+                    @click="handleQuickActionTempo('play')"
+                    :disabled="loadingAcaoTempo"
+                    title="Iniciar Atendimento"
+                  >
+                    <span v-if="loadingAcaoTempo" class="spinner-border spinner-border-sm me-1"></span>
+                    <i v-else class="bi bi-play-circle-fill me-1"></i>
+                    Iniciar
+                  </button>
+                  <button
+                    v-if="podeExecutarAcaoTempo && chamado.status === 'em_andamento'"
+                    class="btn btn-warning"
+                    @click="handleQuickActionTempo('pause')"
+                    :disabled="loadingAcaoTempo"
+                    title="Pausar Atendimento"
+                  >
+                    <span v-if="loadingAcaoTempo" class="spinner-border spinner-border-sm me-1"></span>
+                    <i v-else class="bi bi-pause-circle-fill me-1"></i>
+                    Pausar
+                  </button>
+                  <button
                     v-if="podeEditar"
                     class="btn btn-primary"
                     @click="irParaEdicao"
@@ -79,7 +101,7 @@
                     <i class="bi bi-pencil me-1"></i>
                     Editar
                   </button>
-                  <button 
+                  <button
                     class="btn btn-outline-secondary"
                     @click="voltarParaLista"
                   >
@@ -258,6 +280,25 @@
         </div>
       </div>
 
+      <!-- Indicador flutuante de tempo ativo (só aparece com sessão em andamento) -->
+      <transition name="fade">
+        <div v-if="tempoTrabalho?.tem_sessao_ativa" class="tempo-flutuante">
+          <span class="tempo-flutuante-dot"></span>
+          <i class="bi bi-stopwatch me-1"></i>
+          <span>{{ formatarMinutos(tempoTrabalho.total_minutos_ao_vivo) }}</span>
+          <button
+            v-if="podeExecutarAcaoTempo"
+            class="btn btn-sm btn-light ms-2"
+            @click="handleQuickActionTempo('pause')"
+            :disabled="loadingAcaoTempo"
+            title="Pausar Atendimento"
+          >
+            <span v-if="loadingAcaoTempo" class="spinner-border spinner-border-sm"></span>
+            <i v-else class="bi bi-pause-fill"></i>
+          </button>
+        </div>
+      </transition>
+
       <!-- Alerta de Confirmação de Exclusão -->
       <transition name="fade">
         <div v-if="showDeleteAlert" class="delete-alert-overlay" @click="cancelarExclusao">
@@ -339,6 +380,7 @@ import { useChamadosStore } from '@/stores/chamados';
 import { useUsuariosStore } from '@/stores/usuarios';
 import { useAuthStore } from '@/stores/auth';
 import { useChamados } from '@/composables/useChamados';
+import { formatarMinutos } from '@/composables/useTimeTracking';
 import LayoutPrincipal from '@/components/LayoutPrincipal.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import ErrorMessage from '@/components/shared/ErrorMessage.vue';
@@ -399,6 +441,9 @@ const podeEditar = computed(() => {
   return criadorId === authStore.user?.id || atribuidoId === authStore.user?.id;
 });
 
+const podeExecutarAcaoTempo = computed(() => authStore.isAdmin);
+const loadingAcaoTempo = ref(false);
+
 const podeFechar = computed(() => {
   if (!chamado.value) return false;
   // Não pode fechar se já está fechado
@@ -449,6 +494,30 @@ const carregarTempoTrabalho = async () => {
     console.error('Erro ao carregar tempo trabalhado (não crítico):', err);
   } finally {
     loadingTempoTrabalho.value = false;
+  }
+};
+
+const handleQuickActionTempo = async (acao) => {
+  if (!chamado.value) return;
+  loadingAcaoTempo.value = true;
+  try {
+    const chamadoAtualizado = await chamadosStore.alternarAtendimento(chamado.value.id, acao);
+    chamado.value = {
+      ...chamado.value,
+      ...chamadoAtualizado,
+      comentarios: chamado.value.comentarios,
+      historico: chamado.value.historico
+    };
+    await carregarTempoTrabalho();
+  } catch (err) {
+    console.error('Erro ao alternar atendimento:', err);
+    const errorMessage = err?.response?.data?.error?.message
+      || err?.response?.data?.message
+      || err.message
+      || 'Erro ao alternar atendimento';
+    alert(errorMessage);
+  } finally {
+    loadingAcaoTempo.value = false;
   }
 };
 
@@ -729,6 +798,37 @@ onBeforeUnmount(() => {
 
 .delete-item-details {
   background-color: var(--color-bg-primary);
+}
+
+/* Indicador flutuante de tempo ativo */
+.tempo-flutuante {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--color-success-600, #198754);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.tempo-flutuante-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: tempo-flutuante-pulse 1.5s infinite;
+}
+
+@keyframes tempo-flutuante-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 /* Overlay do alerta de exclusão */
