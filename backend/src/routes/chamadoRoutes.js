@@ -23,7 +23,9 @@ import {
   iniciarContagem,
   pararContagem,
   buscarHistorico,
-  buscarTotais
+  buscarTotais,
+  preverBackfill,
+  executarBackfill
 } from '../controllers/timeTrackingController.js';
 import { autenticar, verificarGerente, verificarAdmin } from '../middleware/auth.js';
 import { uploadMultiple } from '../config/upload.js';
@@ -74,6 +76,34 @@ router.get('/estatisticas', estatisticas);
  *         description: Totais retornados com sucesso
  */
 router.get('/time/totais', buscarTotais);
+
+/**
+ * @swagger
+ * /chamados/time/backfill/preview:
+ *   get:
+ *     summary: Pré-visualizar reconstituição retroativa de tempo (não grava nada)
+ *     tags: [Chamados]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Prévia retornada com sucesso
+ */
+router.get('/time/backfill/preview', verificarAdmin, preverBackfill);
+
+/**
+ * @swagger
+ * /chamados/time/backfill/executar:
+ *   post:
+ *     summary: Executar reconstituição retroativa de tempo trabalhado (cria registros "retroativo")
+ *     tags: [Chamados]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Backfill executado com sucesso
+ */
+router.post('/time/backfill/executar', verificarAdmin, executarBackfill);
 
 /**
  * @swagger

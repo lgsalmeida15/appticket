@@ -1,4 +1,5 @@
 import timeTrackingService from '../services/timeTrackingService.js';
+import timeTrackingBackfillService from '../services/timeTrackingBackfillService.js';
 
 /**
  * Iniciar contagem de tempo
@@ -126,11 +127,37 @@ export const buscarTotais = async (req, res, next) => {
   }
 };
 
+/**
+ * Pré-visualizar o backfill retroativo de tempo (não grava nada)
+ */
+export const preverBackfill = async (req, res, next) => {
+  try {
+    const resultado = await timeTrackingBackfillService.preverTodos();
+    res.json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Executar o backfill retroativo de tempo (grava registros "retroativo")
+ */
+export const executarBackfill = async (req, res, next) => {
+  try {
+    const resultado = await timeTrackingBackfillService.executarTodos();
+    res.json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   iniciarContagem,
   pararContagem,
   buscarHistorico,
   buscarContagemAtiva,
-  buscarTotais
+  buscarTotais,
+  preverBackfill,
+  executarBackfill
 };
 

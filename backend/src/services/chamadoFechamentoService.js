@@ -3,6 +3,7 @@ import solutionCategoryRepository from '../repositories/solutionCategoryReposito
 import chamadoRepository from '../repositories/chamadoRepository.js';
 import chamadoAssociacaoService from './chamadoAssociacaoService.js';
 import auditoriaService from './auditoriaService.js';
+import timeTrackingService from './timeTrackingService.js';
 import eventEmitter from '../utils/EventEmitter.js';
 import logger from '../utils/logger.js';
 import AppError from '../utils/AppError.js';
@@ -119,6 +120,9 @@ class ChamadoFechamentoService {
       data_fechamento: dataResolucao,
       status: 'fechado' // Também atualiza o status principal
     });
+
+    // Finaliza qualquer contagem de tempo ativa, já que o chamado não está mais em andamento
+    await timeTrackingService.sincronizarPorMudancaStatus(chamadoId, dadosAnteriores.status, 'fechado', null);
 
     // Registrar auditoria
     await auditoriaService.registrarAtualizacao(
@@ -314,6 +318,14 @@ class ChamadoFechamentoService {
       data_fechamento: null,
       status: 'em_andamento'
     });
+
+    // Reiniciar contagem de tempo para o responsável (ou quem reabriu, se não houver responsável)
+    await timeTrackingService.sincronizarPorMudancaStatus(
+      chamadoId,
+      'fechado',
+      'em_andamento',
+      chamado.atribuido_a || usuarioId
+    );
 
     // Registrar auditoria da reabertura
     await auditoriaService.registrarAtualizacao(

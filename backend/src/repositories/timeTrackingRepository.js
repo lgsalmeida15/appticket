@@ -265,6 +265,20 @@ class TimeTrackingRepository {
   }
 
   /**
+   * Buscar todas as contagens ativas (fim = null) de um chamado, de qualquer usuário
+   */
+  async buscarTodosAtivosPorChamado(chamadoId) {
+    return await TicketTimeTracking.findAll({
+      where: { chamado_id: chamadoId, fim: null },
+      include: [{
+        model: Usuario,
+        as: 'usuario',
+        attributes: ['id', 'nome', 'email']
+      }]
+    });
+  }
+
+  /**
    * Buscar contagem ativa do usuário (qualquer chamado)
    */
   async buscarContagemAtivaDoUsuario(usuarioId) {

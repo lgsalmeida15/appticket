@@ -4,6 +4,7 @@ import usuarioRepository from '../repositories/usuarioRepository.js';
 import permissionService from './permissionService.js';
 import historicoService from './historicoService.js';
 import auditoriaService from './auditoriaService.js';
+import timeTrackingService from './timeTrackingService.js';
 import eventEmitter from '../utils/EventEmitter.js';
 import logger from '../utils/logger.js';
 import { validarDataHoraInicio } from '../utils/validations.js';
@@ -435,6 +436,22 @@ class ChamadoService {
     // Atualizar chamado
     await chamadoRepository.atualizar(chamadoId, dadosAtualizacao);
 
+    // Sincronizar time tracking com a mudança de status, qualquer que seja a origem
+    // (edição manual, botão de play/pause, etc.) — garante que o contador reflita
+    // sempre que o chamado entra/sai de "em_andamento".
+    if (dadosAtualizacao.status !== undefined && dadosAtualizacao.status !== dadosAnteriores.status) {
+      const responsavelId = dadosAtualizacao.atribuido_a !== undefined
+        ? dadosAtualizacao.atribuido_a
+        : (dadosAnteriores.atribuido_a || usuarioLogado.id);
+
+      await timeTrackingService.sincronizarPorMudancaStatus(
+        chamadoId,
+        dadosAnteriores.status,
+        dadosAtualizacao.status,
+        responsavelId
+      );
+    }
+
     // Determinar tipo de ação para histórico
     let acaoHistorico = 'edicao';
     if (dados.status && dados.status !== dadosAnteriores.status) {
@@ -515,6 +532,9 @@ class ChamadoService {
 
     // Atualizar status para cancelado
     await chamadoRepository.atualizar(chamadoId, { status: 'cancelado' });
+
+    // Finaliza qualquer contagem de tempo ativa, já que o chamado não está mais em andamento
+    await timeTrackingService.sincronizarPorMudancaStatus(chamadoId, dadosAnteriores.status, 'cancelado', null);
 
     // Registrar no histórico
     await historicoService.registrarCancelamento(chamadoId, usuarioId, dadosAnteriores);

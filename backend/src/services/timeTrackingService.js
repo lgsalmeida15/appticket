@@ -195,6 +195,78 @@ class TimeTrackingService {
   }
 
   /**
+   * Finalizar todas as contagens ativas de um chamado (de qualquer usuário).
+   * Usado quando o chamado sai do status "em_andamento" por qualquer caminho
+   * (edição, fechamento, cancelamento), não só pelo botão de pausar.
+   */
+  async finalizarTodasAtivas(chamadoId) {
+    const ativas = await timeTrackingRepository.buscarTodosAtivosPorChamado(chamadoId);
+    const finalizados = [];
+
+    for (const ativa of ativas) {
+      const registro = await timeTrackingRepository.finalizar(ativa.id, new Date());
+      finalizados.push(registro);
+
+      await historicoService.criar({
+        chamado_id: chamadoId,
+        usuario_id: ativa.usuario_id,
+        acao: 'edicao',
+        descricao: `Contagem de tempo finalizada automaticamente (saiu de "em_andamento"). Duração: ${registro.duracao_minutos} minutos`,
+        dados_anteriores: null,
+        dados_novos: { time_tracking_id: registro.id, duracao_minutos: registro.duracao_minutos }
+      });
+
+      logger.info('Contagem de tempo finalizada automaticamente por mudança de status', {
+        registroId: registro.id,
+        chamadoId,
+        usuarioId: ativa.usuario_id,
+        duracaoMinutos: registro.duracao_minutos
+      });
+    }
+
+    return finalizados;
+  }
+
+  /**
+   * Sincroniza o time tracking de um chamado com uma mudança de status,
+   * qualquer que seja a origem dela (edição, fechamento, reabertura, cancelamento).
+   * - Entrando em "em_andamento": inicia contagem para o responsável (idempotente).
+   * - Saindo de "em_andamento": finaliza todas as contagens ativas do chamado.
+   */
+  async sincronizarPorMudancaStatus(chamadoId, statusAnterior, statusNovo, usuarioResponsavelId) {
+    if (!statusNovo || statusAnterior === statusNovo) return;
+
+    const entrouEmAndamento = statusNovo === 'em_andamento' && statusAnterior !== 'em_andamento';
+    const saiuDeEmAndamento = statusAnterior === 'em_andamento' && statusNovo !== 'em_andamento';
+
+    if (entrouEmAndamento && usuarioResponsavelId) {
+      try {
+        await this.iniciarContagem(chamadoId, usuarioResponsavelId, 'Iniciado automaticamente por mudança de status');
+      } catch (error) {
+        // Já existe contagem ativa para esse usuário neste chamado: não é um erro real aqui
+        if (error.code !== 'TRACKING_ALREADY_ACTIVE') {
+          logger.error('Erro ao iniciar contagem automática por mudança de status', {
+            chamadoId,
+            usuarioResponsavelId,
+            error: error.message
+          });
+        }
+      }
+    }
+
+    if (saiuDeEmAndamento) {
+      try {
+        await this.finalizarTodasAtivas(chamadoId);
+      } catch (error) {
+        logger.error('Erro ao finalizar contagens automáticas por mudança de status', {
+          chamadoId,
+          error: error.message
+        });
+      }
+    }
+  }
+
+  /**
    * Buscar contagem ativa do usuário
    */
   async buscarContagemAtiva(usuarioId) {

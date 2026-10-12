@@ -46,6 +46,12 @@ const TicketTimeTracking = sequelize.define('ticket_time_tracking', {
     type: DataTypes.TEXT,
     allowNull: true,
     comment: 'Descrição opcional do trabalho realizado'
+  },
+  origem: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    defaultValue: 'manual',
+    comment: '"manual" (cronometrado em tempo real) ou "retroativo" (reconstruído a partir do histórico de status)'
   }
 }, {
   tableName: 'ticket_time_tracking',

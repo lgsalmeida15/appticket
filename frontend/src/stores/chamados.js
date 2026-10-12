@@ -461,43 +461,26 @@ export const useChamadosStore = defineStore('chamados', {
       const authStore = useAuthStore();
       this.error = null;
       try {
-        if (acao === 'play') {
-          // 1. Iniciar contagem de tempo
-          await chamadoService.iniciarContagem(chamadoId);
-          
-          // 2. Atualizar status para em_andamento e atribuir ao usuário logado
-          const response = await chamadoService.atualizar(chamadoId, { 
-            status: 'em_andamento',
-            atribuido_a: authStore.user.id
-          });
-          
-          const chamadoAtualizado = response.chamado || response;
-          
-          // Atualizar na lista local
-          const index = this.chamados.findIndex(c => c.id === chamadoId);
-          if (index !== -1) {
-            this.chamados[index] = chamadoAtualizado;
-          }
-          return chamadoAtualizado;
+        // O backend inicia/finaliza a contagem de tempo automaticamente como
+        // efeito colateral de QUALQUER mudança de status que entre/saia de
+        // "em_andamento" — não só por este botão, também por edição manual,
+        // fechamento, reabertura etc. Aqui só precisamos atualizar o status.
+        const dados = acao === 'play'
+          ? { status: 'em_andamento', atribuido_a: authStore.user.id }
+          : { status: 'aguardando' };
 
-        } else if (acao === 'pause') {
-          // 1. Parar contagem de tempo
-          await chamadoService.pararContagem(chamadoId);
-          
-          // 2. Atualizar status para aguardando (preservando o responsável atual)
-          const response = await chamadoService.atualizar(chamadoId, { 
-            status: 'aguardando' 
-          });
-          
-          const chamadoAtualizado = response.chamado || response;
-          
-          // Atualizar na lista local
-          const index = this.chamados.findIndex(c => c.id === chamadoId);
-          if (index !== -1) {
-            this.chamados[index] = chamadoAtualizado;
-          }
-          return chamadoAtualizado;
+        const response = await chamadoService.atualizar(chamadoId, dados);
+        const chamadoAtualizado = response.chamado || response;
+
+        const index = this.chamados.findIndex(c => c.id === chamadoId);
+        if (index !== -1) {
+          this.chamados[index] = chamadoAtualizado;
         }
+
+        // Atualiza o total de tempo imediatamente, sem esperar o refresh periódico
+        this.carregarTemposTotais([chamadoId]);
+
+        return chamadoAtualizado;
       } catch (error) {
         this.error = error.response?.data?.error?.message || error.message || 'Erro ao alternar atendimento';
         throw error;
