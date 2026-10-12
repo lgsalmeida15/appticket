@@ -62,11 +62,12 @@ class ChamadoRepository {
         }]
       });
     }
-    
+
     if (opcoes.incluirHistorico) {
       include.push({
         model: Historico,
         as: 'historico',
+        separate: true,
         include: [{
           model: Usuario,
           as: 'usuario',
@@ -75,11 +76,12 @@ class ChamadoRepository {
         order: [['data_hora', 'DESC']]
       });
     }
-    
+
     if (opcoes.incluirComentarios) {
       include.push({
         model: Comentario,
         as: 'comentarios',
+        separate: true,
         include: [{
           model: Usuario,
           as: 'usuario',
@@ -109,6 +111,7 @@ class ChamadoRepository {
         as: 'filhos',
         attributes: ['id', 'titulo', 'status', 'prioridade', 'tipo'],
         required: false,
+        separate: true,
         include: [{
           model: Usuario,
           as: 'criador',
