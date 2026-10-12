@@ -141,15 +141,29 @@ class TimeTrackingService {
     }
 
     const registros = await timeTrackingRepository.buscarTodosPorChamado(chamadoId);
-    
-    // Calcular total
+
+    // Calcular total (apenas sessões finalizadas, mantém compatibilidade)
     const totalMinutos = await timeTrackingRepository.calcularTotalPorChamado(chamadoId);
+
+    // Calcular total incluindo sessão(ões) ativa(s) no momento da consulta
+    const comAtivo = await timeTrackingRepository.calcularTotalComAtivoPorChamado(chamadoId);
 
     return {
       historico: registros.map(r => r.toJSON ? r.toJSON() : r),
       total_minutos: totalMinutos,
-      total_horas: (totalMinutos / 60).toFixed(2)
+      total_horas: (totalMinutos / 60).toFixed(2),
+      total_minutos_ao_vivo: comAtivo.total_minutos,
+      total_horas_ao_vivo: (comAtivo.total_minutos / 60).toFixed(2),
+      tem_sessao_ativa: comAtivo.tem_sessao_ativa,
+      sessoes_ativas: comAtivo.sessoes_ativas
     };
+  }
+
+  /**
+   * Buscar totais de tempo (com sessão ativa incluída) para vários chamados
+   */
+  async buscarTotaisPorChamados(chamadoIds) {
+    return await timeTrackingRepository.calcularTotaisPorChamados(chamadoIds);
   }
 
   /**

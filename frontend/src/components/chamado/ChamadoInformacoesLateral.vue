@@ -93,12 +93,26 @@
         <small class="text-muted d-block">Data de Fechamento</small>
         <strong>{{ formatarData(chamado.data_fechamento) }}</strong>
       </div>
+
+      <hr v-if="tempoTrabalho">
+
+      <div class="mb-3" v-if="tempoTrabalho">
+        <small class="text-muted d-block">
+          <i class="bi bi-stopwatch me-1"></i>
+          Tempo Trabalhado
+        </small>
+        <strong>
+          <span v-if="tempoTrabalho.tem_sessao_ativa" class="live-dot" title="Sessão ativa"></span>
+          {{ formatarMinutos(tempoTrabalho.total_minutos_ao_vivo) }}
+        </strong>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { useChamados } from '@/composables/useChamados';
+import { formatarMinutos } from '@/composables/useTimeTracking';
 
 const { formatarData, formatarStatus, formatarPrioridade, formatarTipo, getBadgeStatus, getBadgePrioridade, getBadgeTipo } = useChamados();
 
@@ -106,6 +120,10 @@ defineProps({
   chamado: {
     type: Object,
     required: true
+  },
+  tempoTrabalho: {
+    type: Object,
+    default: null
   }
 });
 </script>
@@ -120,6 +138,21 @@ hr {
   margin: var(--space-4) 0;
   opacity: 0.1;
   border-color: var(--color-text-primary);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success-500);
+  margin-right: 4px;
+  animation: pulse-tempo-lateral 1.5s infinite;
+}
+
+@keyframes pulse-tempo-lateral {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>
 

@@ -106,6 +106,12 @@
                   <i class="bi bi-diagram-3"></i>
                   <span>{{ chamado.grupo.nome }}</span>
                 </div>
+
+                <div v-if="tempoDoChamado(chamado.id)" class="card-tempo">
+                  <span v-if="tempoDoChamado(chamado.id).tem_sessao_ativa" class="tempo-dot-ao-vivo"></span>
+                  <i class="bi bi-stopwatch"></i>
+                  <span>{{ formatarMinutos(tempoDoChamado(chamado.id).total_minutos) }}</span>
+                </div>
               </div>
 
               <!-- SLA Indicator -->
@@ -127,10 +133,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, shallowRef } from 'vue';
+import { ref, computed, watch, shallowRef, onMounted, onUnmounted } from 'vue';
 import { useChamados } from '@/composables/useChamados';
 import { useChamadosStore } from '@/stores/chamados';
 import { useAuthStore } from '@/stores/auth';
+import { formatarMinutos } from '@/composables/useTimeTracking';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 const { formatarTipo, formatarStatus, formatarPrioridade } = useChamados();
@@ -307,6 +314,20 @@ const isSlaEstourado = (prazo) => {
   if (!prazo) return false;
   return new Date(prazo) < new Date();
 };
+
+const tempoDoChamado = (chamadoId) => chamadosStore.temposTotais[chamadoId] || null;
+
+// Refresh periódico dos totais de tempo (sessões ativas continuam avançando)
+let refreshTemposInterval = null;
+onMounted(() => {
+  refreshTemposInterval = setInterval(() => {
+    const ids = internalChamados.value.map(c => c.id);
+    if (ids.length > 0) chamadosStore.carregarTemposTotais(ids);
+  }, 60000);
+});
+onUnmounted(() => {
+  if (refreshTemposInterval) clearInterval(refreshTemposInterval);
+});
 </script>
 
 <style scoped>
@@ -623,6 +644,23 @@ const isSlaEstourado = (prazo) => {
   gap: 6px;
   font-size: 0.65rem;
   color: var(--color-text-tertiary);
+}
+
+.card-tempo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+}
+
+.tempo-dot-ao-vivo {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success-500);
+  animation: pulse 1.5s infinite;
 }
 
 .sla-indicator {

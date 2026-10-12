@@ -22,7 +22,8 @@ import {
 import {
   iniciarContagem,
   pararContagem,
-  buscarHistorico
+  buscarHistorico,
+  buscarTotais
 } from '../controllers/timeTrackingController.js';
 import { autenticar, verificarGerente, verificarAdmin } from '../middleware/auth.js';
 import { uploadMultiple } from '../config/upload.js';
@@ -52,6 +53,27 @@ router.use(autenticar);
  *         description: Estatísticas retornadas com sucesso
  */
 router.get('/estatisticas', estatisticas);
+
+/**
+ * @swagger
+ * /chamados/time/totais:
+ *   get:
+ *     summary: Buscar totais de tempo trabalhado (com sessão ativa) para vários chamados
+ *     tags: [Chamados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: ids
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Lista de IDs de chamado separados por vírgula
+ *     responses:
+ *       200:
+ *         description: Totais retornados com sucesso
+ */
+router.get('/time/totais', buscarTotais);
 
 /**
  * @swagger

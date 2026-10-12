@@ -150,6 +150,93 @@ class TimeTrackingRepository {
   }
 
   /**
+   * Calcular total de minutos trabalhados em um chamado, incluindo o tempo
+   * decorrido de sessões ainda ativas (fim = null), sem persistir nada.
+   */
+  async calcularTotalComAtivoPorChamado(chamadoId) {
+    const totalFinalizado = await this.calcularTotalPorChamado(chamadoId);
+
+    const sessoesAtivas = await TicketTimeTracking.findAll({
+      where: { chamado_id: chamadoId, fim: null },
+      include: [{
+        model: Usuario,
+        as: 'usuario',
+        attributes: ['id', 'nome', 'email']
+      }]
+    });
+
+    const agora = Date.now();
+    let totalAoVivo = 0;
+    const sessoesAtivasDetalhe = sessoesAtivas.map((s) => {
+      const minutosDecorridos = Math.floor((agora - new Date(s.inicio).getTime()) / (1000 * 60));
+      totalAoVivo += minutosDecorridos;
+      return {
+        id: s.id,
+        usuario: s.usuario ? s.usuario.toJSON() : null,
+        inicio: s.inicio,
+        minutos_decorridos: minutosDecorridos
+      };
+    });
+
+    return {
+      total_minutos: totalFinalizado + totalAoVivo,
+      tem_sessao_ativa: sessoesAtivas.length > 0,
+      sessoes_ativas: sessoesAtivasDetalhe
+    };
+  }
+
+  /**
+   * Versão em lote de calcularTotalComAtivoPorChamado para vários chamados
+   * de uma vez (ex.: cards do Kanban/Lista), evitando N chamadas.
+   */
+  async calcularTotaisPorChamados(chamadoIds) {
+    if (!chamadoIds || chamadoIds.length === 0) {
+      return {};
+    }
+
+    const finalizados = await TicketTimeTracking.findAll({
+      where: {
+        chamado_id: { [Op.in]: chamadoIds },
+        fim: { [Op.ne]: null }
+      },
+      attributes: [
+        'chamado_id',
+        [sequelize.fn('SUM', sequelize.col('duracao_minutos')), 'total_minutos']
+      ],
+      group: ['chamado_id'],
+      raw: true
+    });
+
+    const ativas = await TicketTimeTracking.findAll({
+      where: {
+        chamado_id: { [Op.in]: chamadoIds },
+        fim: null
+      },
+      attributes: ['chamado_id', 'inicio'],
+      raw: true
+    });
+
+    const mapa = {};
+    for (const chamadoId of chamadoIds) {
+      mapa[chamadoId] = { total_minutos: 0, tem_sessao_ativa: false };
+    }
+
+    for (const linha of finalizados) {
+      mapa[linha.chamado_id].total_minutos += parseInt(linha.total_minutos || 0);
+    }
+
+    const agora = Date.now();
+    for (const sessao of ativas) {
+      mapa[sessao.chamado_id].tem_sessao_ativa = true;
+      mapa[sessao.chamado_id].total_minutos += Math.floor(
+        (agora - new Date(sessao.inicio).getTime()) / (1000 * 60)
+      );
+    }
+
+    return mapa;
+  }
+
+  /**
    * Calcular total de minutos trabalhados por um usuário
    */
   async calcularTotalPorUsuario(usuarioId, opcoes = {}) {

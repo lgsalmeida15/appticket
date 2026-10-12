@@ -8,6 +8,7 @@ export const useChamadosStore = defineStore('chamados', {
     chamado: null,
     comentarios: [],
     estatisticas: null,
+    temposTotais: {},
     loading: false,
     error: null,
     pagination: {
@@ -48,6 +49,9 @@ export const useChamadosStore = defineStore('chamados', {
           total: response.total || 0,
           totalPages: response.totalPages || 0
         };
+
+        // Não bloqueia a listagem principal nem sua flag de loading
+        this.carregarTemposTotais(this.chamados.map(c => c.id));
 
         return response;
       } catch (error) {
@@ -329,6 +333,21 @@ export const useChamadosStore = defineStore('chamados', {
       } catch (error) {
         this.error = error.response?.data?.error?.message || error.message || 'Erro ao buscar histórico';
         throw error;
+      }
+    },
+
+    /**
+     * Carregar totais de tempo trabalhado (com sessão ativa) para os chamados informados.
+     * Não lança erro para não quebrar a listagem principal em caso de falha.
+     */
+    async carregarTemposTotais(chamadoIds) {
+      if (!chamadoIds || chamadoIds.length === 0) return;
+      try {
+        const response = await chamadoService.buscarTotaisTempo(chamadoIds);
+        this.temposTotais = { ...this.temposTotais, ...(response.totais || {}) };
+      } catch (error) {
+        // Silencioso: é um dado complementar, não deve derrubar a tela
+        console.error('Erro ao carregar totais de tempo', error);
       }
     },
 

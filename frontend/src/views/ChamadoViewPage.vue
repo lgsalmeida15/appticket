@@ -184,6 +184,12 @@
                 </div>
               </div>
 
+              <!-- Tempo Trabalhado -->
+              <ChamadoTimeTrackingHistorico
+                :dados="tempoTrabalho"
+                :loading="loadingTempoTrabalho"
+              />
+
               <!-- Comentários -->
               <div class="card">
                 <div class="card-header">
@@ -207,7 +213,7 @@
 
             <!-- Painel Lateral com Informações -->
             <div class="col-lg-4">
-              <ChamadoInformacoesLateral :chamado="chamado" />
+              <ChamadoInformacoesLateral :chamado="chamado" :tempo-trabalho="tempoTrabalho" />
               
               <!-- Botão de Fechar Chamado -->
               <div v-if="podeFechar" class="card mt-3 border-success">
@@ -341,6 +347,7 @@ import ChamadoComentarios from '@/components/chamado/ChamadoComentarios.vue';
 import ChamadoInformacoesLateral from '@/components/chamado/ChamadoInformacoesLateral.vue';
 import ChamadoFechamentoInfo from '@/components/chamado/ChamadoFechamentoInfo.vue';
 import ChamadoRelacionamentos from '@/components/chamado/ChamadoRelacionamentos.vue';
+import ChamadoTimeTrackingHistorico from '@/components/chamado/ChamadoTimeTrackingHistorico.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -367,6 +374,9 @@ const loadingComentario = ref(false);
 const comentariosRef = ref(null);
 const fechamento = ref(null);
 const reabrindo = ref(false);
+const tempoTrabalho = ref(null);
+const loadingTempoTrabalho = ref(false);
+let refreshTempoInterval = null;
 
 // Computed
 const usuariosAdmin = computed(() => usuariosStore.usuarios.filter(u => u.tipo === 'admin'));
@@ -417,6 +427,8 @@ const carregarChamado = async () => {
     if (chamado.value.status_fechamento === 'fechado') {
       await carregarFechamento();
     }
+
+    await carregarTempoTrabalho();
   } catch (err) {
     console.error('Erro ao carregar chamado:', err);
     error.value = err?.response?.data?.error?.message 
@@ -425,6 +437,18 @@ const carregarChamado = async () => {
       || 'Erro ao carregar chamado';
   } finally {
     loading.value = false;
+  }
+};
+
+const carregarTempoTrabalho = async () => {
+  if (!chamado.value) return;
+  loadingTempoTrabalho.value = true;
+  try {
+    tempoTrabalho.value = await chamadosStore.buscarHistoricoTimeTracking(chamado.value.id);
+  } catch (err) {
+    console.error('Erro ao carregar tempo trabalhado (não crítico):', err);
+  } finally {
+    loadingTempoTrabalho.value = false;
   }
 };
 
@@ -670,10 +694,16 @@ onMounted(async () => {
   }
   
   await carregarChamado();
+
+  // Atualiza o tempo trabalhado periodicamente (sessão ativa continua avançando)
+  refreshTempoInterval = setInterval(() => {
+    carregarTempoTrabalho();
+  }, 30000);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleDeleteAlertEscape);
+  if (refreshTempoInterval) clearInterval(refreshTempoInterval);
 });
 </script>
 

@@ -53,6 +53,11 @@
             <i class="bi bi-calendar"></i>
             <span>{{ formatarData(chamado.created_at) }}</span>
           </div>
+          <div v-if="tempoDoChamado(chamado.id)" class="meta-item meta-tempo">
+            <span v-if="tempoDoChamado(chamado.id).tem_sessao_ativa" class="tempo-dot-ao-vivo"></span>
+            <i class="bi bi-stopwatch"></i>
+            <span>{{ formatarMinutos(tempoDoChamado(chamado.id).total_minutos) }}</span>
+          </div>
         </div>
 
         <!-- Footer -->
@@ -144,10 +149,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useChamados } from '@/composables/useChamados';
 import { useChamadosStore } from '@/stores/chamados';
 import { useAuthStore } from '@/stores/auth';
+import { formatarMinutos } from '@/composables/useTimeTracking';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 
@@ -239,6 +245,20 @@ const paginationPages = computed(() => {
   }
   
   return pages;
+});
+
+const tempoDoChamado = (chamadoId) => chamadosStore.temposTotais[chamadoId] || null;
+
+// Refresh periódico dos totais de tempo (sessões ativas continuam avançando)
+let refreshTemposInterval = null;
+onMounted(() => {
+  refreshTemposInterval = setInterval(() => {
+    const ids = props.chamados.map(c => c.id);
+    if (ids.length > 0) chamadosStore.carregarTemposTotais(ids);
+  }, 60000);
+});
+onUnmounted(() => {
+  if (refreshTemposInterval) clearInterval(refreshTemposInterval);
 });
 </script>
 
@@ -347,6 +367,23 @@ const paginationPages = computed(() => {
 .meta-item i {
   font-size: 1rem;
   color: var(--color-text-tertiary);
+}
+
+.meta-tempo {
+  font-weight: var(--font-weight-medium);
+}
+
+.tempo-dot-ao-vivo {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success-500);
+  animation: pulse-tempo 1.5s infinite;
+}
+
+@keyframes pulse-tempo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 /* Footer */

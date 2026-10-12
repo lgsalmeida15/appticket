@@ -93,10 +93,44 @@ export const buscarContagemAtiva = async (req, res, next) => {
   }
 };
 
+/**
+ * Buscar totais de tempo (com sessão ativa incluída) para vários chamados de uma vez
+ */
+export const buscarTotais = async (req, res, next) => {
+  try {
+    const { ids } = req.query;
+    if (!ids) {
+      const error = new Error('Parâmetro "ids" é obrigatório');
+      error.statusCode = 400;
+      error.code = 'MISSING_IDS';
+      throw error;
+    }
+
+    const chamadoIds = String(ids)
+      .split(',')
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !isNaN(id) && id > 0);
+
+    if (chamadoIds.length === 0) {
+      const error = new Error('Nenhum ID válido informado');
+      error.statusCode = 400;
+      error.code = 'INVALID_IDS';
+      throw error;
+    }
+
+    const totais = await timeTrackingService.buscarTotaisPorChamados(chamadoIds);
+
+    res.json({ totais });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   iniciarContagem,
   pararContagem,
   buscarHistorico,
-  buscarContagemAtiva
+  buscarContagemAtiva,
+  buscarTotais
 };
 

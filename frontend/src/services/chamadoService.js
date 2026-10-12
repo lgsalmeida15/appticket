@@ -295,6 +295,17 @@ class ChamadoService {
   }
 
   /**
+   * Buscar totais de tempo trabalhado (com sessão ativa) para vários chamados
+   */
+  async buscarTotaisTempo(ids) {
+    if (!ids || ids.length === 0) return { totais: {} };
+    const response = await http.get('/chamados/time/totais', {
+      params: { ids: ids.join(',') }
+    });
+    return response.data;
+  }
+
+  /**
    * Associar chamado filho a um chamado pai
    */
   async associarFilho(chamadoPaiId, chamadoFilhoId) {
