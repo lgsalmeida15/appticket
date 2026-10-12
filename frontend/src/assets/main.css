@@ -34,21 +34,29 @@ body {
 .card {
   border: none;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: box-shadow 0.2s;
 }
 
+/* Sem transform aqui de propósito: um card com transform cria um novo
+   stacking context, o que (a) quebra position: fixed de modais filhos
+   (eles encolhem para o tamanho do card) e (b) prende o z-index de
+   dropdowns/menus filhos dentro desse stacking context, fazendo-os
+   aparecerem por baixo do próximo card irmão. O efeito de "levantar" no
+   hover fica só em .card-elevated (classe opt-in), que não é usada em
+   nenhum card com modal/dropdown dentro hoje. */
 .card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-/* Reforço defensivo: um ancestral com transform cria um novo containing
-   block e quebra position: fixed de modais filhos (eles encolhem para o
-   tamanho do card em vez de ocupar a viewport). Todo modal deveria ser
-   renderizado via <Teleport to="body"> (ver BaseModal.vue), mas isso aqui
-   neutraliza o efeito mesmo que algum modal futuro esqueça de teleportar. */
-.card:has(.modal.show) {
+/* Reforço defensivo: neutraliza qualquer transform (ex.: .card-elevated,
+   ou algo adicionado no futuro) enquanto o card tiver um modal ou dropdown
+   aberto dentro dele, e garante que o card fique acima dos irmãos nesse
+   momento — mesmo que o transform volte a ser usado em algum lugar. */
+.card:has(.modal.show),
+.card:has(.dropdown-menu.show) {
   transform: none !important;
+  position: relative;
+  z-index: 1056;
 }
 
 /* Botões */

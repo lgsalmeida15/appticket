@@ -73,7 +73,12 @@
               </button>
 
               <div v-if="podeGerenciar && tarefa.status !== 'cancelada'" class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" @click.stop>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  data-bs-toggle="dropdown"
+                  data-bs-boundary="viewport"
+                  @click.stop
+                >
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
