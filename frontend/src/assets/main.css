@@ -42,6 +42,15 @@ body {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
+/* Reforço defensivo: um ancestral com transform cria um novo containing
+   block e quebra position: fixed de modais filhos (eles encolhem para o
+   tamanho do card em vez de ocupar a viewport). Todo modal deveria ser
+   renderizado via <Teleport to="body"> (ver BaseModal.vue), mas isso aqui
+   neutraliza o efeito mesmo que algum modal futuro esqueça de teleportar. */
+.card:has(.modal.show) {
+  transform: none !important;
+}
+
 /* Botões */
 .btn {
   transition: all 0.2s ease;

@@ -1,72 +1,60 @@
 <template>
-  <div
-    v-if="show"
-    class="modal fade show d-block"
-    tabindex="-1"
-    @click.self="fechar"
-    style="background-color: rgba(0,0,0,0.5);"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h5 class="modal-title">
-            <i class="bi bi-list-task me-2"></i>
-            {{ tarefa ? 'Editar Tarefa' : 'Nova Tarefa' }}
-          </h5>
-          <button type="button" class="btn-close" @click="fechar"></button>
-        </div>
-        <form @submit.prevent="salvar">
-          <div class="modal-body">
-            <div v-if="erro" class="alert alert-danger">{{ erro }}</div>
+  <BaseModal :show="show" @fechar="fechar">
+    <template #header>
+      <i class="bi bi-list-task me-2"></i>
+      {{ tarefa ? 'Editar Tarefa' : 'Nova Tarefa' }}
+    </template>
 
-            <div class="mb-3">
-              <label class="form-label">Título</label>
-              <input v-model="form.titulo" type="text" class="form-control" required maxlength="200" />
-            </div>
+    <form id="form-tarefa" @submit.prevent="salvar">
+      <div v-if="erro" class="alert alert-danger">{{ erro }}</div>
 
-            <div class="mb-3">
-              <label class="form-label">Descrição</label>
-              <textarea v-model="form.descricao" class="form-control" rows="3"></textarea>
-            </div>
-
-            <div class="mb-3" v-if="usuarios?.length">
-              <label class="form-label">Responsável</label>
-              <select v-model="form.responsavel_id" class="form-select">
-                <option :value="null">Sem responsável</option>
-                <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.nome }}</option>
-              </select>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-6">
-                <label class="form-label">Início previsto</label>
-                <input v-model="form.data_inicio_prevista" type="date" class="form-control" />
-              </div>
-              <div class="col-6">
-                <label class="form-label">Fim previsto</label>
-                <input v-model="form.data_fim_prevista" type="date" class="form-control" />
-              </div>
-            </div>
-            <small class="text-muted d-block mt-2">
-              <i class="bi bi-info-circle me-1"></i>
-              Essas datas são opcionais — só aparecem no calendário/Gantt se preenchidas.
-            </small>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="fechar">Cancelar</button>
-            <button type="submit" class="btn btn-primary" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              {{ loading ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div class="mb-3">
+        <label class="form-label">Título</label>
+        <input v-model="form.titulo" type="text" class="form-control" required maxlength="200" />
       </div>
-    </div>
-  </div>
+
+      <div class="mb-3">
+        <label class="form-label">Descrição</label>
+        <textarea v-model="form.descricao" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="mb-3" v-if="usuarios?.length">
+        <label class="form-label">Responsável</label>
+        <select v-model="form.responsavel_id" class="form-select">
+          <option :value="null">Sem responsável</option>
+          <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.nome }}</option>
+        </select>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label">Início previsto</label>
+          <input v-model="form.data_inicio_prevista" type="date" class="form-control" />
+        </div>
+        <div class="col-6">
+          <label class="form-label">Fim previsto</label>
+          <input v-model="form.data_fim_prevista" type="date" class="form-control" />
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">
+        <i class="bi bi-info-circle me-1"></i>
+        Essas datas são opcionais — só aparecem no calendário/Gantt se preenchidas.
+      </small>
+    </form>
+
+    <template #footer>
+      <button type="button" class="btn btn-secondary" @click="fechar">Cancelar</button>
+      <button type="submit" form="form-tarefa" class="btn btn-primary" :disabled="loading">
+        <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+        {{ loading ? 'Salvando...' : 'Salvar' }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
+import BaseModal from '@/components/shared/BaseModal.vue';
 
 const props = defineProps({
   show: { type: Boolean, default: false },
